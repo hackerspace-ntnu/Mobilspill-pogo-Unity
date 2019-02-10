@@ -6,5 +6,4 @@
 ** Style
 - TODO: C#/Unity Linter
 
-- [[./git-style-guide.md][Git style guide]]
-- [[./commit-message-guidelines][Git Commit Message guidelines]]
+- [[./git-guidelines.md][Git guidelines]]
