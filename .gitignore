@@ -153,6 +153,7 @@ console/firebase-debug.log
 .vscode
 
 # GO Map
+Assets/GOMap/*
 'Assets/GO Map - 3D Map For AR Gaming/'*
 
 # Plugins
