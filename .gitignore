@@ -154,3 +154,8 @@ console/firebase-debug.log
 
 # GO Map
 'Assets/'GO Map - 3D Map For AR Gaming/'*
+
+# Plugins
+'Assets/Plugins'
+'Assets/Plugins'/*
+'Assets/Plugins.meta'
