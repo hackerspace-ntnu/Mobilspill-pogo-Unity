@@ -13,7 +13,6 @@ Ll]ibrary/
 
 # Gradle cache directory
 .gradle/
-=======
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
@@ -35,7 +34,6 @@ ExportedObj/
 *.pidb
 *.booproj
 *.svd
-<<<<<<< HEAD
 *.pdb
 *.mdb
 *.opendb
@@ -47,23 +45,6 @@ ExportedObj/
 *.mdb.meta
 
 # Unity3D generated file on crash reports
-=======
-
-
-# Unity3D generated meta files
-*.pidb.meta
-
-# Unity3D Generated File On Crash Reports
-sysinfo.txt
-
-# Builds
-*.apk
-
-*.unitypackage
-
-# Crashlytics generated file
-crashlytics-build.properties
-=======
 *.symbols.zip
 *.unitypackage
 
@@ -154,7 +135,6 @@ console/firebase-debug.log
 
 # GO Map
 Assets/GOMap/*
-'Assets/GO Map - 3D Map For AR Gaming/'*
 
 # Plugins
 'Assets/Plugins'
