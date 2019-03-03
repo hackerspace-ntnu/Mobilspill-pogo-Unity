@@ -155,6 +155,7 @@ PlayerSettings:
   applicationIdentifier:
     Android: com.Hackerspace.PoGo
     Standalone: com.Hackerspace.PoGo
+    iOS: com.Hackerspace.PoGo
   buildNumber: {}
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 16

@@ -6,9 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: "Assets/GO Map - 3D Map For AR Gaming/Demo/Flat Map - Poke\u0300mon GO Style.unity"
-    guid: d913476a351924199953791debfb2394
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/Scenes/Main menu.unity
+    guid: 5488dca11a2d1e74b9791a5d285b4d1e
+  - enabled: 1
+    path: Assets/Scenes/LoginScene.unity
+    guid: b4eac3205e8e3164f99d224ba67efca5
+  - enabled: 1
+    path: "Assets/Scenes/Flat Map - Poke\u0300mon GO Style.unity"
+    guid: 5123ceb52063b0741b07bc5a58e1ad29
   m_configObjects: {}
