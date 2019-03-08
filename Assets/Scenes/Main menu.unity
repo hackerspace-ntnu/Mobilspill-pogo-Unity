@@ -200,7 +200,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 20596376}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 809402c160ab0084397bed47361d8901, type: 3}
+  m_Script: {fileID: 11500000, guid: 0281486288ce4d94f9caca4f3db1fe13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &39973856
@@ -847,7 +847,6 @@ GameObject:
   - component: {fileID: 1686581704}
   - component: {fileID: 1686581703}
   - component: {fileID: 1686581702}
-  - component: {fileID: 1686581701}
   m_Layer: 5
   m_Name: LogOutButton
   m_TagString: Untagged
@@ -875,18 +874,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 65}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1686581701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1686581699}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85443614b3e0c674e8d72dd81967b928, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1686581702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -927,7 +914,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1686581701}
+      - m_Target: {fileID: 0}
         m_MethodName: StartGame
         m_Mode: 1
         m_Arguments:
@@ -1061,7 +1048,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1696316380}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 533dcb63cf83ad14f9174c9c36d99d02, type: 3}
+  m_Script: {fileID: 11500000, guid: 006d538d3b30ce34e8149ede9f391101, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1898320303

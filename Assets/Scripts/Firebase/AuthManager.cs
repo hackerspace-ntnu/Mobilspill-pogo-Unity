@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.Firebase;
+using Assets.Scripts.Models;
 using Firebase;
+using Firebase.Database;
+using Newtonsoft.Json;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +14,7 @@ public class AuthManager {
 
     private AuthManager() {
         _instance = this;
+        _rDBManager = RealtimeDatabaseManager.Instance;
 
         // Checking firebase dependencies.
         Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task => {
@@ -23,6 +28,8 @@ public class AuthManager {
                 if (this.Auth.CurrentUser == null) {
                     SceneManager.LoadScene("Assets/Scenes/LoginScene.unity");
                 }
+
+                _setUserWithAuthId(Auth.CurrentUser.UserId);
             } else {
                 Debug.LogError(string.Format(
                     "Could not resolve all Firebase dependencies: {0}", dependencyStatus));
@@ -30,6 +37,7 @@ public class AuthManager {
             }
         });
     }
+
 
     private static AuthManager _instance;
     public static AuthManager Instance {
@@ -40,6 +48,13 @@ public class AuthManager {
     public bool FirebaseActive {
         get { return _firebaseActive; }
     }
+
+    private User _currentUser;
+    public User CurrentUser {
+        get { return _currentUser; }
+    }
+
+    private RealtimeDatabaseManager _rDBManager;
 
     private FirebaseApp _app;
     public Firebase.Auth.FirebaseAuth Auth;
@@ -64,9 +79,36 @@ public class AuthManager {
                 newUser.DisplayName, newUser.UserId);
 
             if (Auth.CurrentUser != null) {
+                //creating user in DB with username
+                _addUserToRDB(new User("Plappster", Auth.CurrentUser.UserId));
+
                 SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
             }
         });
+    }
+
+    private void _addUserToRDB(User user) {
+
+        string userJson = JsonConvert.SerializeObject(user);
+        Debug.Log("[AuthManager] user json: " + userJson);
+        RealtimeDatabaseManager.Instance.DBReference
+            .Child("users")
+            .Child(user.UserId).SetRawJsonValueAsync(userJson);
+
+    }
+
+    private void _setUserWithAuthId(string AuthId) {
+        RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
+            .GetReference("users/" + AuthId)
+            .GetValueAsync().ContinueWith(task => {
+                if (task.IsFaulted) {
+                    // Handle the error...
+                } else if (task.IsCompleted) {
+                    DataSnapshot snapshot = task.Result;
+                    // Do something with snapshot...
+                    Debug.Log("[AuthManager] retrieved user info: " + snapshot);
+                }
+            });
     }
 
     public void LoginWithEmail(string email, string password) {

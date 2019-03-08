@@ -1648,11 +1648,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 675609285}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f14fdf8ed0cba4aa5a36df8cdc270844, type: 3}
+  m_Script: {fileID: 11500000, guid: fca629a3899cb6e47b44352c786bff47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   goMap: {fileID: 1044621998}
-  testLineMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  testLineMaterial: {fileID: 2100000, guid: e59f1a9d942354ce58e64eb55a93ab0c, type: 2}
   testPolygonMaterial: {fileID: 2100000, guid: ccfb5ee011c8044db94f19ceb1ebe876, type: 2}
   uvMappingStyle: 5
 --- !u!1 &692794656
