@@ -10,6 +10,8 @@ public class MainMenuHandler : MonoBehaviour {
     private GameObject _logOutButton;
     private GameObject _loadingBar;
 
+    //properly logged in means we have both the db user values and the auth
+    private bool _properlyLoggedIn = false;
     // Start is called before the first frame update.
     void Start() {
         AuthManager authManager = AuthManager.Instance;
@@ -25,14 +27,21 @@ public class MainMenuHandler : MonoBehaviour {
             AuthManager.Instance.LogOut();
         });
 
-        if (authManager.Auth.CurrentUser != null) {
-            SetText(_startButton, string.Format("Start Game as {0}", authManager.Auth.CurrentUser.DisplayName));
-        }
+
+        if (authManager.FirebaseActive 
+            && authManager.Auth.CurrentUser != null) {
+            if (authManager.CurrentUser != null) {
+                _properlyLoggedIn = true;
+                SetText(_startButton, string.Format("Start Game as {0}", authManager.CurrentUser.DisplayName));
+            } else {
+                _toggleVisibleElements();
+            }
+        } 
 
         Debug.Log("Performing startup checks...");
 
         //TODO: listen to certain authManager changes and toggle on change.
-        //ToggleVisibleElements();
+        //_toggleVisibleElements();
     }
 
     public void StartGame() {
@@ -47,12 +56,21 @@ public class MainMenuHandler : MonoBehaviour {
         }
     }
 
+    // Update is called once per frame
+    void Update() {
+        if (!_properlyLoggedIn && AuthManager.Instance.CurrentUser != null) {
+            _properlyLoggedIn = true;
+            _toggleVisibleElements();
+            SetText(_startButton, string.Format("Start Game as {0}", AuthManager.Instance.CurrentUser.DisplayName));
+        }
+    }
+
     public void SetText(GameObject button, string newText) {
         button.GetComponentInChildren<Text>().text = newText;
     }
 
-    public void ToggleVisibleElements() {
-        if (AuthManager.Instance.Auth == null) {
+    private void _toggleVisibleElements() {
+        if (_properlyLoggedIn) {
             _startButton.SetActive(false);
             _logOutButton.SetActive(false);
             _loadingBar.SetActive(true);
@@ -62,7 +80,5 @@ public class MainMenuHandler : MonoBehaviour {
             _loadingBar.SetActive(false);
         }
     }
-
-    // Update is called once per frame.
-    void Update() {}
+    
 }

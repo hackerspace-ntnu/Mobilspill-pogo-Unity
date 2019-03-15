@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.Models;
 using Firebase;
 using Firebase.Database;
 using Firebase.Unity.Editor;
@@ -20,19 +21,44 @@ namespace Assets.Scripts.Firebase {
 
         // Use this for initialization
         IEnumerator Start() {
-
             //Waiting for the location manager to have the world origin set.
             yield return StartCoroutine(goMap.locationManager.WaitForOriginSet());
-            dropPin(63.418148, 10.403391);
-            
 
+            //Setting up subscription to positions
+            RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
+                .GetReference("positions")
+                .ValueChanged += HandlePositionChanged;
+        }
+
+        void HandlePositionChanged(object sender, ValueChangedEventArgs args) {
+            if (args.DatabaseError != null) {
+                Debug.LogError(args.DatabaseError.Message);
+                return;
+            }
+            // Do something with the data in args.Snapshot
+            Dictionary<string, object> snapshotVal = args.Snapshot.Value as Dictionary<string, object>;
+
+            if (snapshotVal != null) {
+                foreach (KeyValuePair<string, object> entry in snapshotVal) {
+                    Dictionary<string, object> posDict = (Dictionary<string, object>)((Dictionary<string, object>) entry.Value)["position"];
+                    Position pos = new Position((double) posDict["lat"], (double) posDict["lng"], (double)(long)posDict["alt"]);
+                    Debug.Log("Position element: " + entry.Key + ": " + pos);
+                    dropPin(pos);
+                }
+                Debug.Log(snapshotVal);
+
+            }
+        }
+
+        void dropPin(Position pos) {
+            dropPin(pos.Latitude, pos.Longitude);
         }
 
         void dropPin(double lng, double lat){
             //1) create game object (you can instantiate a prefab instead)
             GameObject aBigRedSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             aBigRedSphere.transform.localScale = new Vector3(10, 10, 10);
-            aBigRedSphere.GetComponent<MeshRenderer>().material.color = Color.red;
+            aBigRedSphere.GetComponent<MeshRenderer>().material.color = Color.green;
 
 
             //2) make a Coordinate class with your desired latitude longitude

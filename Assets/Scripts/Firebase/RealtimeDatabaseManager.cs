@@ -26,23 +26,9 @@ namespace Assets.Scripts.Firebase {
         }
 
         private RealtimeDatabaseManager() {
-
-            // Set up the Editor before calling into the realtime database.
             FirebaseApp.DefaultInstance.SetEditorDatabaseUrl("https://pogo-firebase.firebaseio.com/");
-
-            /*FirebaseDatabase.DefaultInstance
-                .GetReference("Users")
-                .GetValueAsync().ContinueWith(task => {
-                    if (task.IsFaulted) {
-                        // Handle the error...
-                        Debug.LogError("[RealtimeDatabaseManager] Error: " + task.Exception);
-                    } else if (task.IsCompleted) {
-                        DataSnapshot snapshot = task.Result;
-                        // Do something with snapshot...
-                        Debug.Log("[RealtimeDatabaseManager] " + snapshot.Value);
-                    }
-                });*/
         }
+
        
     }
 }

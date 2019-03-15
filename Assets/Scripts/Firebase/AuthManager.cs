@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Assets.Scripts.Firebase;
 using Assets.Scripts.Models;
 using Firebase;
@@ -9,6 +10,7 @@ using Newtonsoft.Json;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = System.Object;
 
 public class AuthManager {
 
@@ -20,20 +22,21 @@ public class AuthManager {
         Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task => {
             var dependencyStatus = task.Result;
             if (dependencyStatus == Firebase.DependencyStatus.Available) {
-                // Set a flag here to indicate whether Firebase is ready to use by the app.
+                // Setting a flag here to indicate whether Firebase is ready to use by the app.
                 _firebaseActive = true;
                 // Initializing auth.
                 this.Auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
                 // If user is not logged in, he is redirected to LoginScene.
-                if (this.Auth.CurrentUser == null) {
+                if (Auth.CurrentUser == null) {
                     SceneManager.LoadScene("Assets/Scenes/LoginScene.unity");
+                } else {
+                    _getUserWithAuthId(Auth.CurrentUser.UserId);
                 }
 
-                _setUserWithAuthId(Auth.CurrentUser.UserId);
             } else {
                 Debug.LogError(string.Format(
                     "Could not resolve all Firebase dependencies: {0}", dependencyStatus));
-                // Firebase Unity SDK is not safe to use here.
+                    // Firebase Unity SDK is not safe to use here.
             }
         });
     }
@@ -79,36 +82,41 @@ public class AuthManager {
                 newUser.DisplayName, newUser.UserId);
 
             if (Auth.CurrentUser != null) {
-                //creating user in DB with username
-                _addUserToRDB(new User("Plappster", Auth.CurrentUser.UserId));
+                //creating user in DB with username (currently just start of email)
+                _currentUser = new User(email.Split('@')[0], Auth.CurrentUser.UserId);
+                _addUserToRDB(_currentUser).ContinueWith(t => {
 
-                SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+                    if (task.IsCanceled) {
+                        Debug.LogError("[AuthManager] AddUserToDb was canceled.");
+                        return;
+                    }
+                    if (t.IsFaulted) {
+                        Debug.LogError("[AuthManager] AddUserToDb encountered an error: " + task.Exception);
+                        return;
+                    }
+                    //everything worked -> we can redirect to main menu. 
+                    SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+                });
+
             }
         });
     }
 
-    private void _addUserToRDB(User user) {
+    private Task _addUserToRDB(User user) {
 
         string userJson = JsonConvert.SerializeObject(user);
         Debug.Log("[AuthManager] user json: " + userJson);
-        RealtimeDatabaseManager.Instance.DBReference
+        return RealtimeDatabaseManager.Instance.DBReference
             .Child("users")
             .Child(user.UserId).SetRawJsonValueAsync(userJson);
 
     }
 
-    private void _setUserWithAuthId(string AuthId) {
-        RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
+    private Task<DataSnapshot> _getUserWithAuthId(string AuthId) {
+        Debug.Log("[AuthManager] retrieving user info with id: " + AuthId);
+        return RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
             .GetReference("users/" + AuthId)
-            .GetValueAsync().ContinueWith(task => {
-                if (task.IsFaulted) {
-                    // Handle the error...
-                } else if (task.IsCompleted) {
-                    DataSnapshot snapshot = task.Result;
-                    // Do something with snapshot...
-                    Debug.Log("[AuthManager] retrieved user info: " + snapshot);
-                }
-            });
+            .GetValueAsync();
     }
 
     public void LoginWithEmail(string email, string password) {
@@ -129,7 +137,19 @@ public class AuthManager {
                 newUser.DisplayName, newUser.UserId);
 
             if (Auth.CurrentUser != null) {
-                SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+                _getUserWithAuthId(Auth.CurrentUser.UserId).ContinueWith(t => {
+                    if (task.IsFaulted) {
+                        // Handle the error...
+                        Debug.Log("[AuthManager] Failed getting user: " + t.Exception);
+                    } else if (task.IsCompleted) {
+                        Dictionary<string, object> snapshotVal = t.Result.Value as Dictionary<string, object>;
+                        if (snapshotVal != null) {
+                            // Setting _currentUser to the snapshot, then returning to Main menu.
+                            _currentUser = new User(snapshotVal["displayname"].ToString(), Auth.CurrentUser.UserId);
+                            SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+                        }
+                    }
+                });
             }
         });
     }

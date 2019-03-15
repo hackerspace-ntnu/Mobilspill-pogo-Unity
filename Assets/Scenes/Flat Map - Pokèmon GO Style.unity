@@ -1454,7 +1454,7 @@ PrefabInstance:
     - target: {fileID: 11458246, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
       propertyPath: layers.Array.data[2].renderingOptions.Array.data[0].material
       value: 
-      objectReference: {fileID: 2100000, guid: c57cd580fa00e4cb3811866d02e5b217, type: 2}
+      objectReference: {fileID: 2100000, guid: 320ae9a9b55791d41a4a2e0e372a55f2, type: 2}
     - target: {fileID: 11458246, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
       propertyPath: layers.Array.data[2].renderingOptions.Array.data[0].hasRoof
       value: 1
