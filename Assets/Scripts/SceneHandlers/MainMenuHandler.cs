@@ -48,11 +48,12 @@ public class MainMenuHandler : MonoBehaviour {
         // If Firebase is active and user exists.
         if (AuthManager.Instance.FirebaseActive
             && AuthManager.Instance.Auth != null) {
-            SceneManager.LoadScene("Assets/Scenes/Flat Map - Pokèmon GO Style.unity");
+            SceneManager.LoadScene("Assets/Scenes/PoGo.unity");
         } else {
             UnityEngine.Debug.LogError("ERROR -- Should not have start game option when not logged in.");
+            
             // Loading login screen.
-            SceneManager.LoadScene("");
+            SceneManager.LoadScene("Assets/Scenes/LoginScene.unity");
         }
     }
 
