@@ -12,6 +12,6 @@ EditorBuildSettings:
     path: Assets/Scenes/LoginScene.unity
     guid: b4eac3205e8e3164f99d224ba67efca5
   - enabled: 1
-    path: "Assets/Scenes/Flat Map - Poke\u0300mon GO Style.unity"
-    guid: 5123ceb52063b0741b07bc5a58e1ad29
+    path: Assets/Scenes/PoGo.unity
+    guid: ccb2fc32566be3648bdb8b0c56312cb1
   m_configObjects: {}

@@ -1,4 +1,5 @@
-﻿using Firebase.Database;
+﻿using Boo.Lang;
+using Firebase.Database;
 using Newtonsoft.Json;
 
 namespace Assets.Scripts.Models {
@@ -20,14 +21,32 @@ namespace Assets.Scripts.Models {
             get { return ServerValue.Timestamp; }
         }
 
+        [JsonProperty(PropertyName = "modified")]
+        public object Modified {
+            get { return ServerValue.Timestamp; }
+        }
+
+        [JsonProperty(PropertyName = "is_admin")]
+        public bool isAdmin {
+            get { return false; }
+        }
+
+        [JsonProperty(PropertyName = "groups")]
+        public List<string> Groups { get; set; }
+
         [JsonIgnore] //not necessary to push with the rest of the data
         public string UserId { get; set; }
 
-        public User(string userName, string userId) {
+        public User(string userName, string userId) : 
+            this(userName, userId, new List<string>()) { } 
+
+
+        public User(string userName, string userId, List<string> groups) {
             UserName = userName;
             DisplayName = userName;
             UserId = userId;
-        }
+            Groups = groups;
+        }   
 
     }
 }
