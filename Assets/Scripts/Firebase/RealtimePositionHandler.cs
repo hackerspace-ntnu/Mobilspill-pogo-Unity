@@ -24,10 +24,11 @@ namespace Assets.Scripts.Firebase {
             //Waiting for the location manager to have the world origin set.
             yield return StartCoroutine(goMap.locationManager.WaitForOriginSet());
 
-            //Setting up subscription to positions
+            /* DISABLED Setting up subscription to positions
             RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
                 .GetReference("positions")
                 .ValueChanged += HandlePositionChanged;
+            */
         }
 
         void HandlePositionChanged(object sender, ValueChangedEventArgs args) {
