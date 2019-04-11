@@ -66,7 +66,7 @@ public class AuthManager {
     public void RegisterWithEmail(string email, string password) {
         Auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWith(task => {
             if (task.IsCanceled) {
-                Debug.LogError("[AuthManager] CreateUserWithEmailAndPasswordAsync was canceled.");
+                Debug.LogError("[AuthManager] Create    UserWithEmailAndPasswordAsync was canceled.");
                 return;
             }
             if (task.IsFaulted) {
@@ -83,7 +83,9 @@ public class AuthManager {
 
             if (Auth.CurrentUser != null) {
                 //creating user in DB with username (currently just start of email)
-                _currentUser = new User(email.Split('@')[0], Auth.CurrentUser.UserId);
+                _currentUser = new User(email.Split('@')[0], Auth.CurrentUser.UserId, true);
+                Debug.Log("Current userId: " + Auth.CurrentUser);
+
                 _addUserToRDB(_currentUser).ContinueWith(t => {
 
                     if (task.IsCanceled) {
@@ -91,7 +93,7 @@ public class AuthManager {
                         return;
                     }
                     if (t.IsFaulted) {
-                        Debug.LogError("[AuthManager] AddUserToDb encountered an error: " + task.Exception);
+                        Debug.LogError("[AuthManager] AddUserToDb encountered an error: " + task.Exception.ToString());
                         return;
                     }
                     //everything worked -> we can redirect to main menu. 
@@ -104,18 +106,26 @@ public class AuthManager {
 
     private Task _addUserToRDB(User user) {
 
-        string userJson = JsonConvert.SerializeObject(user);
-        Debug.Log("[AuthManager] user json: " + userJson);
-        return RealtimeDatabaseManager.Instance.DBReference
-            .Child("users")
-            .Child(user.UserId).SetRawJsonValueAsync(userJson);
 
+        Dictionary<string, System.Object> createUserDict = new Dictionary<string, System.Object>();
+        createUserDict["/usernames/" + user.UserName] = user.UserId;
+        createUserDict["/users/" + user.UserId] = user.ToDictionary();
+
+        Debug.Log("[AuthManager] user json: " + JsonConvert.SerializeObject(createUserDict));
+    
+        return RealtimeDatabaseManager.Instance.DBReference.UpdateChildrenAsync(createUserDict);
     }
 
     private Task<DataSnapshot> _getUserWithAuthId(string AuthId) {
         Debug.Log("[AuthManager] retrieving user info with id: " + AuthId);
         return RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
             .GetReference("users/" + AuthId)
+            .GetValueAsync();
+    }
+
+    public Task<DataSnapshot> GetUserGroupMembership(string groupId) {
+        return RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
+            .GetReference("groups/map/" + groupId + "/protected/members/" + Auth.CurrentUser.UserId)
             .GetValueAsync();
     }
 
@@ -138,14 +148,20 @@ public class AuthManager {
 
             if (Auth.CurrentUser != null) {
                 _getUserWithAuthId(Auth.CurrentUser.UserId).ContinueWith(t => {
-                    if (task.IsFaulted) {
+                    if (t.IsFaulted) {
                         // Handle the error...
                         Debug.Log("[AuthManager] Failed getting user: " + t.Exception);
-                    } else if (task.IsCompleted) {
+                    } else if (t.IsCompleted) {
                         Dictionary<string, object> snapshotVal = t.Result.Value as Dictionary<string, object>;
+
                         if (snapshotVal != null) {
                             // Setting _currentUser to the snapshot, then returning to Main menu.
-                            _currentUser = new User(snapshotVal["displayname"].ToString(), Auth.CurrentUser.UserId);
+                            _currentUser = new User((string) snapshotVal["displayname"], Auth.CurrentUser.UserId);
+                            //_currentUser.TotalScore = (int)snapshotVal["total_score"];
+                            //_currentUser.UserSince = snapshotVal["user_since"];
+
+                            Debug.Log("[AuthManager] user values: " + JsonConvert.SerializeObject(snapshotVal));
+
                             SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
                         }
                     }

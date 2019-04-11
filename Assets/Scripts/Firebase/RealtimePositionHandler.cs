@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.Models;
 using Firebase;
@@ -24,11 +25,20 @@ namespace Assets.Scripts.Firebase {
             //Waiting for the location manager to have the world origin set.
             yield return StartCoroutine(goMap.locationManager.WaitForOriginSet());
 
-            /* DISABLED Setting up subscription to positions
-            RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
-                .GetReference("positions")
-                .ValueChanged += HandlePositionChanged;
-            */
+            //if user does not exists, throw an error -> should never happen
+            if (AuthManager.Instance.CurrentUser == null) {
+                Debug.LogError("User should exist when using RealtimePositionHandler");
+                Application.Quit();
+            } else {
+                //Setting up subscription to positions in all of the user's groups
+                //TODO: make sure not to repeat/duplicate users who are in multiple groups.
+                foreach (string groupId in AuthManager.Instance.CurrentUser.Groups) {
+                    RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
+                        .GetReference("groups/map/" + groupId + "/protected/members")
+                        .ValueChanged += HandlePositionChanged;
+                }
+            }
+
         }
 
         void HandlePositionChanged(object sender, ValueChangedEventArgs args) {
@@ -49,6 +59,10 @@ namespace Assets.Scripts.Firebase {
                 Debug.Log(snapshotVal);
 
             }
+        }
+
+        public void PushPositionUpdates(User user, Position serverPosition) {
+
         }
 
         void dropPin(Position pos) {
