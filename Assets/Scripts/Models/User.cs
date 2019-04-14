@@ -40,7 +40,7 @@ namespace Assets.Scripts.Models {
         }
 
         [JsonProperty(PropertyName = "groups")]
-        public List<string> Groups { get; set; }
+        public Dictionary<string, System.Object> Groups { get; set; }
 
         [JsonIgnore] //not necessary to push with the rest of the data
         public string UserId { get; set; }
@@ -49,23 +49,28 @@ namespace Assets.Scripts.Models {
         [JsonIgnore] public Dictionary<string, GroupMember> GroupMemberships { get; set; }
 
         [JsonIgnore] public Position ServerPosition { get; set; }
-        [JsonIgnore] public Position Position { get; set; }
+
+        [JsonIgnore]
+        public Position Position { get; set; }
 
         public User(string displayName, string userId, bool registering = false) :
-            this(displayName, userId, new List<string>(), registering){ }
+            this(displayName, userId, new Dictionary<string, System.Object>(), registering){ }
             
-        public User(string displayName, string userId, List<string> groups, bool registering=false) {
+        public User(string displayName, string userId, Dictionary<string, System.Object> groups, bool registering=false) {
             UserName = displayName.Replace(".", "");
             DisplayName = displayName.Replace(".", "");
             UserId = userId;
             Groups = groups;
+            Position = new Position();
+            ServerPosition = new Position();
 
             GroupMemberships = new Dictionary<string, GroupMember>();
             if (!registering) {
                 //retrieving group memberships from server
                 if (Groups.Count == 0) {
                     //hardcoded based on current server value -> joining base group
-                    JoinGroup("-La2SQPdOkCSsz-Eygd");
+                    //JoinGroup("-La2SQPdOkCSsz-Eygd");
+                    Debug.Log("[User] Not getting the group memberships");
                 } else {
                     //Already member of group(s): retrieving membership info from server.
                     GetUserGroupMemberships();
@@ -75,19 +80,28 @@ namespace Assets.Scripts.Models {
         }
 
         public void GetUserGroupMemberships() {
-            foreach (string group in Groups) {
+            Debug.Log("[User] retrieving group memberships. Total: " + Groups.Count);
+
+            foreach (string group in Groups.Values) {
+
                 AuthManager.Instance.GetUserGroupMembership(group).ContinueWith(task => {
                     if (task.IsFaulted) {
                         // Handle the error...
                         Debug.Log("[User] Failed getting membership for " + group + ": " + task.Exception);
                     } else if (task.IsCompleted) {
                         Dictionary<string, object> snapshotVal = task.Result.Value as Dictionary<string, object>;
-
                         if (snapshotVal != null) {
                             //don't really need the position, already know what it should be.
 
                             //adding to GroupMemberships
-                            GroupMember membership = new GroupMember(Position, new MemberPublic((int)snapshotVal["score"], snapshotVal["member_since"], snapshotVal["modified"], (bool)snapshotVal["share_position"]));
+                            GroupMember membership = new GroupMember(Position, 
+                                new MemberPublic(
+                                    (int)(long)snapshotVal["score"], 
+                                    snapshotVal["member_since"], snapshotVal["modified"], (bool)snapshotVal["share_position"])
+                                );
+
+                            Debug.Log("[User] membership retrieved and created successfully.");
+
                             GroupMemberships.Add(group, membership);
                         }
                     }
@@ -117,7 +131,7 @@ namespace Assets.Scripts.Models {
 
                     if (res.IsCompleted) {
                         //updating user Group list and memberships in app
-                        Groups.Add(groupId);
+                        Groups.Add(newGroupKey, groupId);
                         GroupMemberships.Add(groupId, membership);
 
                         //todo: react to this change in-game
@@ -132,17 +146,34 @@ namespace Assets.Scripts.Models {
 
         public void OnLocationChanged(Coordinates newPos) {
             Position.Coordinates = newPos;
-            
+            Debug.Log(message: "[USER] updating position. Current pos: " + newPos + " -- dist: " + (ServerPosition.IsEmpty ? "" : ServerPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos).ToString()));
+
+
             //I think this gives me distance in meters. If more than 10 meter difference: update and push to server.
-            if (ServerPosition != null && ServerPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 10) {
+            if (ServerPosition.IsEmpty || ServerPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 0.00001) {
                 ServerPosition.Coordinates = newPos;
+                Debug.Log("SERIOUSLY UPDATING POSITION for " + GroupMemberships.Count + " groups");
 
+                Dictionary<string, object> updatePosDict = new Dictionary<string, object>();
                 foreach (KeyValuePair<string, GroupMember> membership in GroupMemberships) {
-                    
-                }
-            }
+                    updatePosDict["groups/map/" + membership.Key + "/protected/members/" + AuthManager.Instance.CurrentUser.UserId] = membership.Value.ToDictionary(Position);
 
-            //todo: push to server for all group memberships
+                    Debug.Log("dict: " + JsonConvert.SerializeObject(updatePosDict));
+
+                }
+
+                //todo: push to server for all group memberships
+                RealtimeDatabaseManager.Instance.DBReference.UpdateChildrenAsync(updatePosDict)
+                    .ContinueWith(res => {
+                        if (res.IsCompleted) {
+                            //todo: react to this change in-game
+                            Debug.Log("Position updated successfully!");
+                        } else {
+                            Debug.LogError("Something went wrong while updating position. Fuck! error: " + res.Exception);
+                        }
+                    }
+                );
+            }
         }
 
         public Dictionary<string, System.Object> ToDictionary() {

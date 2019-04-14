@@ -8,6 +8,11 @@ namespace Assets.Scripts.Models {
 
     public class Position : IDictionaryObject {
 
+        [JsonIgnore]
+        public bool IsEmpty {
+            get { return Coordinates == null; }
+        }
+
         [JsonProperty("lat")]
         public double Latitude {
             get { return Coordinates.latitude; }
@@ -35,6 +40,8 @@ namespace Assets.Scripts.Models {
 
         [JsonIgnore]
         public Coordinates Coordinates { get; set;}
+
+        public Position() { }
 
         public Position(double lat, double lng, double alt) {
             Coordinates = new Coordinates(lat, lng, alt);
