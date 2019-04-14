@@ -156,9 +156,18 @@ public class AuthManager {
 
                         if (snapshotVal != null) {
                             // Setting _currentUser to the snapshot, then returning to Main menu.
-                            _currentUser = new User((string) snapshotVal["displayname"], Auth.CurrentUser.UserId);
-                            //_currentUser.TotalScore = (int)snapshotVal["total_score"];
-                            //_currentUser.UserSince = snapshotVal["user_since"];
+                            if (snapshotVal["groups"] != null && snapshotVal["groups"].GetType() == typeof(Dictionary<string, System.Object>)) {
+                                Debug.Log(snapshotVal["groups"] + " -- " + snapshotVal["groups"].GetType());
+                                _currentUser = new User((string) snapshotVal["displayname"], Auth.CurrentUser.UserId, 
+                                    (Dictionary<string, System.Object>) snapshotVal["groups"]);
+                            } else {
+                                _currentUser = new User((string)snapshotVal["displayname"], Auth.CurrentUser.UserId);
+                            }
+
+
+                            _currentUser.TotalScore = (int)(long)snapshotVal["total_score"];
+                            _currentUser.UserSince = (long)snapshotVal["user_since"];
+                            //_currentUser.Groups = (List<>)
 
                             Debug.Log("[AuthManager] user values: " + JsonConvert.SerializeObject(snapshotVal));
 

@@ -32,7 +32,7 @@ namespace Assets.Scripts.Firebase {
             } else {
                 //Setting up subscription to positions in all of the user's groups
                 //TODO: make sure not to repeat/duplicate users who are in multiple groups.
-                foreach (string groupId in AuthManager.Instance.CurrentUser.Groups) {
+                foreach (string groupId in AuthManager.Instance.CurrentUser.Groups.Values) {
                     RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
                         .GetReference("groups/map/" + groupId + "/protected/members")
                         .ValueChanged += HandlePositionChanged;
@@ -51,10 +51,12 @@ namespace Assets.Scripts.Firebase {
 
             if (snapshotVal != null) {
                 foreach (KeyValuePair<string, object> entry in snapshotVal) {
-                    Dictionary<string, object> posDict = (Dictionary<string, object>)((Dictionary<string, object>) entry.Value)["position"];
-                    Position pos = new Position((double) posDict["lat"], (double) posDict["lng"], (double)(long)posDict["alt"]);
-                    Debug.Log("Position element: " + entry.Key + ": " + pos);
-                    dropPin(pos);
+                    if (entry.Key != AuthManager.Instance.CurrentUser.UserId) {
+                        Dictionary<string, object> posDict = (Dictionary<string, object>)((Dictionary<string, object>)entry.Value)["position"];
+                        Position pos = new Position((double)posDict["lat"], (double)posDict["lng"], (double)(long)posDict["alt"]);
+                        Debug.Log("Position element: " + entry.Key + ": " + pos);
+                        dropPin(pos);
+                    }
                 }
                 Debug.Log(snapshotVal);
 
@@ -62,7 +64,7 @@ namespace Assets.Scripts.Firebase {
         }
 
         public void PushPositionUpdates(User user, Position serverPosition) {
-
+            
         }
 
         void dropPin(Position pos) {

@@ -16,8 +16,7 @@ namespace Assets.Scripts.Firebase {
         }
 
         // Root reference location of the database.
-        public DatabaseReference DBReference {
-            get { return FirebaseDatabase.DefaultInstance.RootReference; }
+        public DatabaseReference DBReference {get { return FirebaseDatabase.DefaultInstance.RootReference; }
         }
         
         // forward reference for default firebase intance.
