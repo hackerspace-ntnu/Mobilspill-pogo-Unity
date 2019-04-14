@@ -69,7 +69,7 @@ namespace Assets.Scripts.Models {
                 //retrieving group memberships from server
                 if (Groups.Count == 0) {
                     //hardcoded based on current server value -> joining base group
-                    //JoinGroup("-La2SQPdOkCSsz-Eygd");
+                    JoinGroup("-La2SQPdOkCSsz-Eygd");
                     Debug.Log("[User] Not getting the group memberships");
                 } else {
                     //Already member of group(s): retrieving membership info from server.
@@ -136,9 +136,13 @@ namespace Assets.Scripts.Models {
 
                         //todo: react to this change in-game
                         Debug.Log("group joined successfully!");
+                        GetUserGroupMemberships();
+
                     } else {
                         Debug.LogError("Something went wrong while joining group. Fuck! error: " + res.Exception);
                     }
+                    //TODO: probably a better way to do this. 
+                    GetUserGroupMemberships();
 
                 }
             );
