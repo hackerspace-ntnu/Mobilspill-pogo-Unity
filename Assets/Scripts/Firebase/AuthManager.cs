@@ -155,12 +155,15 @@ public class AuthManager {
                         Dictionary<string, object> snapshotVal = t.Result.Value as Dictionary<string, object>;
 
                         if (snapshotVal != null) {
+                            Debug.Log("[AuthManager] Creating user from: " + JsonConvert.SerializeObject(snapshotVal));
                             // Setting _currentUser to the snapshot, then returning to Main menu.
-                            if (snapshotVal["groups"] != null && snapshotVal["groups"].GetType() == typeof(Dictionary<string, System.Object>)) {
+                            if (snapshotVal.ContainsKey("groups") && snapshotVal["groups"].GetType() == typeof(Dictionary<string, System.Object>)) {
+                                Debug.Log("[AuthManager] Creating user with groups");
                                 Debug.Log(snapshotVal["groups"] + " -- " + snapshotVal["groups"].GetType());
                                 _currentUser = new User((string) snapshotVal["displayname"], Auth.CurrentUser.UserId, 
                                     (Dictionary<string, System.Object>) snapshotVal["groups"]);
                             } else {
+                                Debug.Log("[AuthManager] Creating user without groups");
                                 _currentUser = new User((string)snapshotVal["displayname"], Auth.CurrentUser.UserId);
                             }
 

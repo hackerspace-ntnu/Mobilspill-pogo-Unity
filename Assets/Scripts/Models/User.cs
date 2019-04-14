@@ -120,10 +120,10 @@ namespace Assets.Scripts.Models {
             Dictionary<string, System.Object> groupDict = new Dictionary<string, System.Object>();
             groupDict["/users/" + UserId + "/groups/" + newGroupKey] = groupId;
 
-            Dictionary<string, System.Object> memberDict = membership.ToDictionary();
+            Dictionary<string, System.Object> memberDict = membership.DefaultDictionary();
             Debug.Log("[User] groupDict: " + membership);
 
-            groupDict["/groups/map/" + groupId + "/protected/members/" + UserId] = membership.ToDictionary();
+            groupDict["/groups/map/" + groupId + "/protected/members/" + UserId] = memberDict;
 
 
             RealtimeDatabaseManager.Instance.DBReference.UpdateChildrenAsync(groupDict)
@@ -158,6 +158,7 @@ namespace Assets.Scripts.Models {
                 Dictionary<string, object> updatePosDict = new Dictionary<string, object>();
                 foreach (KeyValuePair<string, GroupMember> membership in GroupMemberships) {
                     updatePosDict["groups/map/" + membership.Key + "/protected/members/" + AuthManager.Instance.CurrentUser.UserId] = membership.Value.ToDictionary(Position);
+                    Debug.Log("[User] updatePosDict: " + JsonConvert.SerializeObject(updatePosDict));
                 }
 
                 //todo: push to server for all group memberships

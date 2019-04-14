@@ -76,8 +76,20 @@ namespace Assets.Scripts.Models {
             Position.Position = newPos;
         }
 
-        public Dictionary<string, object> ToDictionary() {
-            Dictionary<string, Object> toReturn = new Dictionary<string, Object>();
+        public Dictionary<string, System.Object> DefaultDictionary() {
+            Dictionary<string, System.Object> toReturn = new Dictionary<string, Object>();
+
+            toReturn["score"] = 0;
+            toReturn["member_since"] = ServerValue.Timestamp;
+            toReturn["modified"] = ServerValue.Timestamp;
+            toReturn["is_owner"] = false;
+            toReturn["share_position"] = true;
+
+            return toReturn;
+        }
+
+        public Dictionary<string, System.Object> ToDictionary() {
+            Dictionary<string, System.Object> toReturn = new Dictionary<string, Object>();
 
             toReturn["score"] = PublicInfo.Score;
             toReturn["member_since"] = PublicInfo.MemberSince;
