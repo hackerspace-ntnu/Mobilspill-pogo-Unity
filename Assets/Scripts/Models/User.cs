@@ -146,27 +146,21 @@ namespace Assets.Scripts.Models {
 
         public void OnLocationChanged(Coordinates newPos) {
             Position.Coordinates = newPos;
-            Debug.Log(message: "[USER] updating position. Current pos: " + newPos + " -- dist: " + (ServerPosition.IsEmpty ? "" : ServerPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos).ToString()));
-
-
-            //I think this gives me distance in meters. If more than 10 meter difference: update and push to server.
+            
+            //If more than (i believe) approx. 10 meter difference: update and push to server.
             if (ServerPosition.IsEmpty || ServerPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 0.00001) {
                 ServerPosition.Coordinates = newPos;
-                Debug.Log("SERIOUSLY UPDATING POSITION for " + GroupMemberships.Count + " groups");
 
                 Dictionary<string, object> updatePosDict = new Dictionary<string, object>();
                 foreach (KeyValuePair<string, GroupMember> membership in GroupMemberships) {
                     updatePosDict["groups/map/" + membership.Key + "/protected/members/" + AuthManager.Instance.CurrentUser.UserId] = membership.Value.ToDictionary(Position);
-
-                    Debug.Log("dict: " + JsonConvert.SerializeObject(updatePosDict));
-
                 }
 
                 //todo: push to server for all group memberships
                 RealtimeDatabaseManager.Instance.DBReference.UpdateChildrenAsync(updatePosDict)
                     .ContinueWith(res => {
                         if (res.IsCompleted) {
-                            //todo: react to this change in-game
+                            //todo: decide if necessary to react to this change in-game or not, and if so do.
                             Debug.Log("Position updated successfully!");
                         } else {
                             Debug.LogError("Something went wrong while updating position. Fuck! error: " + res.Exception);
