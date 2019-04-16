@@ -158,7 +158,7 @@ namespace Assets.Scripts.Models {
                 Dictionary<string, object> updatePosDict = new Dictionary<string, object>();
                 foreach (KeyValuePair<string, GroupMember> membership in GroupMemberships) {
                     updatePosDict["groups/map/" + membership.Key + "/protected/members/" + AuthManager.Instance.CurrentUser.UserId] = membership.Value.ToDictionary(Position);
-                    Debug.Log("[User] updatePosDict: " + JsonConvert.SerializeObject(updatePosDict));
+                    //Debug.Log("[User] updatePosDict: " + JsonConvert.SerializeObject(updatePosDict));
                 }
 
                 //todo: push to server for all group memberships

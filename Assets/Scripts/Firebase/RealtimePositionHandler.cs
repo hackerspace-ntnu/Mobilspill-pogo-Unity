@@ -7,6 +7,7 @@ using Firebase.Database;
 using Firebase.Unity.Editor;
 using GoMap;
 using GoShared;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Assets.Scripts.Firebase {
@@ -51,9 +52,15 @@ namespace Assets.Scripts.Firebase {
 
             if (snapshotVal != null) {
                 foreach (KeyValuePair<string, object> entry in snapshotVal) {
-                    if (entry.Key != AuthManager.Instance.CurrentUser.UserId) {
-                        Dictionary<string, object> posDict = (Dictionary<string, object>)((Dictionary<string, object>)entry.Value)["position"];
-                        Position pos = new Position((double)posDict["lat"], (double)posDict["lng"], (double)(long)posDict["alt"]);
+                    Debug.Log("Pos: " + JsonConvert.SerializeObject(snapshotVal));
+                    Dictionary<string, object> memberVal = ((Dictionary<string, object>) entry.Value);
+                    if(entry.Key != AuthManager.Instance.CurrentUser.UserId && memberVal.ContainsKey("position")){
+                        Dictionary<string, object> posDict = (Dictionary<string, object>) memberVal["position"];
+                        Position pos = new Position(
+                            (double) posDict["lat"], 
+                            (double) posDict["lng"],
+                            (long) posDict["alt"]);
+
                         Debug.Log("Position element: " + entry.Key + ": " + pos);
                         dropPin(pos);
                     }
