@@ -288,7 +288,7 @@ PrefabInstance:
     - target: {fileID: 50660169485567113, guid: 4af096660dfc08743883720c4281d30b,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 85
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 50660169485567113, guid: 4af096660dfc08743883720c4281d30b,
         type: 3}
@@ -328,7 +328,7 @@ PrefabInstance:
     - target: {fileID: 7840130777997448071, guid: 4af096660dfc08743883720c4281d30b,
         type: 3}
       propertyPath: m_FontData.m_MaxSize
-      value: 65
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 7840130777997448071, guid: 4af096660dfc08743883720c4281d30b,
         type: 3}
@@ -542,7 +542,7 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 12800000, guid: 7cb2912222469634ba17a77055919ea8, type: 3}
-    m_FontSize: 63
+    m_FontSize: 60
     m_FontStyle: 0
     m_BestFit: 1
     m_MinSize: 0
@@ -698,7 +698,7 @@ RectTransform:
   m_AnchorMin: {x: 0.15, y: 0.55}
   m_AnchorMax: {x: 0.85, y: 0.55}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 65}
+  m_SizeDelta: {x: 0, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1188559634
 MonoBehaviour:
@@ -801,14 +801,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: SF Scene Elements
       objectReference: {fileID: 0}
-    - target: {fileID: 400002, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400002, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -853,6 +845,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 400002, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400002, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
 --- !u!1 &1686581699
@@ -892,7 +892,7 @@ RectTransform:
   m_AnchorMin: {x: 0.15, y: 0.35}
   m_AnchorMax: {x: 0.85, y: 0.35}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 65}
+  m_SizeDelta: {x: 0, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1686581702
 MonoBehaviour:
@@ -1130,7 +1130,7 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 12800000, guid: 7cb2912222469634ba17a77055919ea8, type: 3}
-    m_FontSize: 63
+    m_FontSize: 60
     m_FontStyle: 0
     m_BestFit: 1
     m_MinSize: 2
