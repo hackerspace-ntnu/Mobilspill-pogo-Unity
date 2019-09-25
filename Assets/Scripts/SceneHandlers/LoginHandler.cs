@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Assets.Scripts.SceneHandlers {
@@ -19,7 +20,8 @@ namespace Assets.Scripts.SceneHandlers {
             Debug.Log("[LoginHandler] Email: " + _emailInput.GetComponent<InputField>().text);
             Debug.Log("[LoginHandler] Pass:  " + _passwordInput.GetComponent<InputField>().text);
 
-            _loginButton.GetComponent<Button>().onClick.AddListener(() => {
+            _loginButton.GetComponent<Button>().onClick.AddListener(() =>
+            {
                 AuthManager.Instance.LoginWithEmail(
                     _emailInput.GetComponent<InputField>().text,
                     _passwordInput.GetComponent<InputField>().text);
@@ -33,6 +35,13 @@ namespace Assets.Scripts.SceneHandlers {
         }
 
         // Update is called once per frame.
-        void Update(){}
+        void Update() {
+            // If properly logged in (User data retrieved by AuthManager),
+            // Player should be redirected to main menu.
+            // This must stay here because SceneManager.LoadScene doesn't work properly from within Continue in tasks.
+            if (AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
+                SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+            }
+        }
     }
 }

@@ -179,9 +179,7 @@ public class AuthManager {
                 // Handle the error...
                 Debug.Log("[AuthManager] Failed getting user: " + t.Exception);
             } else if (t.IsCompleted) {
-                Dictionary<string, object> snapshotVal = t.Result.Value as Dictionary<string, object>;
-
-                if (snapshotVal != null) {
+                if (t.Result.Value is Dictionary<string, object> snapshotVal) {
                     Debug.Log("[AuthManager] Creating user from: " + JsonConvert.SerializeObject(snapshotVal));
                     // Setting _currentUser to the snapshot, then returning to Main menu.
                     if (snapshotVal.ContainsKey("groups") && snapshotVal["groups"].GetType() == typeof(Dictionary<string, System.Object>)) {
@@ -200,8 +198,10 @@ public class AuthManager {
                     //_currentUser.Groups = (List<>)
 
                     Debug.Log("[AuthManager] user values: " + JsonConvert.SerializeObject(snapshotVal));
+                    Debug.Log("Loading main menu scene");
 
-                    SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+                    //SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+                    //SceneManager.LoadScene("Assets/Scenes/PoGo.unity");
                 }
             }
         });
@@ -211,6 +211,7 @@ public class AuthManager {
         Debug.Log("[AuthManager] User signing out");
         Auth.SignOut();
         UserByAuth.Clear();
+        _currentUser = null;
         if (Auth.CurrentUser == null) {
             SceneManager.LoadScene("Assets/Scenes/LoginScene.unity");
         }

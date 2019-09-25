@@ -15,6 +15,7 @@ public class MainMenuHandler : MonoBehaviour {
     private bool _properlyLoggedIn = false;
     // Start is called before the first frame update.
     private void Start() {
+        Debug.Log("[MainMenuHandler] Starting main menu");
 
         _startButton = GameObject.Find("StartGameButton");
         _logOutButton = GameObject.Find("LogOutButton");
