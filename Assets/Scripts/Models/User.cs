@@ -53,6 +53,11 @@ namespace Assets.Scripts.Models {
         [JsonIgnore]
         public Position Position { get; set; }
 
+        [JsonIgnore]
+        public bool HasProperValues {
+            get { return !string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(UserId); }
+        }
+
         public User(string displayName, string userId, bool registering = false) :
             this(displayName, userId, new Dictionary<string, System.Object>(), registering){ }
             

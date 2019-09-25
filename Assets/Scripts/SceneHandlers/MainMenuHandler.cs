@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -13,35 +14,74 @@ public class MainMenuHandler : MonoBehaviour {
     //properly logged in means we have both the db user values and the auth
     private bool _properlyLoggedIn = false;
     // Start is called before the first frame update.
-    void Start() {
-        AuthManager authManager = AuthManager.Instance;
+    private void Start() {
+
         _startButton = GameObject.Find("StartGameButton");
         _logOutButton = GameObject.Find("LogOutButton");
         _loadingBar = GameObject.Find("LoadingImage");
+
+        _loadingBar.SetActive(true);
+        _startButton.SetActive(false);
+        _logOutButton.SetActive(false);
+
+        StartCoroutine(_init());
+    }
+
+    private IEnumerator _init() {
+
+        if (!AuthManager.Instance.IsInitialized) {
+            Task initAuthTask = AuthManager.Instance.GetAndInitAuthManagerTask();
+            //waiting for AuthManager async initiation to complete
+            while (!initAuthTask.IsCompleted) yield return null;
+
+           
+            if (AuthManager.Instance.Auth.CurrentUser == null) {
+                Debug.Log("Loading new scene");
+                SceneManager.LoadScene("Assets/Scenes/LoginScene.unity");
+            } else {
+
+                if (AuthManager.Instance.FirebaseActive && AuthManager.Instance.Auth.CurrentUser != null) {
+                    if (!string.IsNullOrEmpty(AuthManager.Instance.Auth.CurrentUser.UserId)) {
+                        if (AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
+                            FinishSetup();
+                        } /*else {
+                            Debug.Log("Getting user..........");                        
+                            AuthManager.Instance.GetUserWithAuthId();
+                    }   */
+                    }
+                }
+
+                Debug.Log("Performing startup checks...");
+
+                //TODO: listen to certain authManager changes and toggle on change.
+            }
+
+
+        }
+        else {
+            Debug.Log("Initialized!!");
+            // Loading bar currently not needed - disabling for now.
+            _loadingBar.SetActive(false);
+
+            // Setting up button listeners.
+            _startButton.GetComponent<Button>().onClick.AddListener(StartGame);
+            _logOutButton.GetComponent<Button>().onClick.AddListener(() => { AuthManager.Instance.LogOut(); });
+
+        }
+    }
+
+    public void FinishSetup() {
+        _properlyLoggedIn = true;
+        SetText(_startButton, $"Start Game as {AuthManager.Instance.CurrentUser.DisplayName}");
+        
         // Loading bar currently not needed - disabling for now.
         _loadingBar.SetActive(false);
+        _startButton.SetActive(true);
+        _logOutButton.SetActive(true);
 
         // Setting up button listeners.
         _startButton.GetComponent<Button>().onClick.AddListener(StartGame);
-        _logOutButton.GetComponent<Button>().onClick.AddListener(() => {
-            AuthManager.Instance.LogOut();
-        });
-
-
-        if (authManager.FirebaseActive 
-            && authManager.Auth.CurrentUser != null) {
-            if (authManager.CurrentUser != null) {
-                _properlyLoggedIn = true;
-                SetText(_startButton, string.Format("Start Game as {0}", authManager.CurrentUser.DisplayName));
-            } else {
-                _toggleVisibleElements();
-            }
-        } 
-
-        Debug.Log("Performing startup checks...");
-
-        //TODO: listen to certain authManager changes and toggle on change.
-        //_toggleVisibleElements();
+        _logOutButton.GetComponent<Button>().onClick.AddListener(() => { AuthManager.Instance.LogOut(); });
     }
 
     public void StartGame() {
@@ -59,27 +99,14 @@ public class MainMenuHandler : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (!_properlyLoggedIn && AuthManager.Instance.CurrentUser != null) {
-            _properlyLoggedIn = true;
-            _toggleVisibleElements();
-            SetText(_startButton, string.Format("Start Game as {0}", AuthManager.Instance.CurrentUser.DisplayName));
+        // If not yet properly logged in (User data not yet retrieved by AuthManager),
+        // check if user data retrieved properly every frame and if so, finish setup.
+        if (!_properlyLoggedIn && AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
+            FinishSetup();
         }
     }
 
     public void SetText(GameObject button, string newText) {
         button.GetComponentInChildren<Text>().text = newText;
     }
-
-    private void _toggleVisibleElements() {
-        if (_properlyLoggedIn) {
-            _startButton.SetActive(false);
-            _logOutButton.SetActive(false);
-            _loadingBar.SetActive(true);
-        } else {
-            _startButton.SetActive(true);
-            _logOutButton.SetActive(true);
-            _loadingBar.SetActive(false);
-        }
-    }
-    
 }

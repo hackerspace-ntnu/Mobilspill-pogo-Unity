@@ -17,50 +17,67 @@ public class AuthManager {
     private AuthManager() {
         _instance = this;
         _rDBManager = RealtimeDatabaseManager.Instance;
+    }
 
-        // Checking firebase dependencies.
-        Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task => {
-            var dependencyStatus = task.Result;
-            if (dependencyStatus == Firebase.DependencyStatus.Available) {
-                // Setting a flag here to indicate whether Firebase is ready to use by the app.
-                _firebaseActive = true;
-                // Initializing auth.
-                this.Auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
-                // If user is not logged in, he is redirected to LoginScene.
-                if (Auth.CurrentUser == null) {
-                    SceneManager.LoadScene("Assets/Scenes/LoginScene.unity");
+    public Task GetAndInitAuthManagerTask() {
+        return Task.Run(() =>
+        {
+            // Checking firebase dependencies.
+            Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task => {
+                var dependencyStatus = task.Result;
+                if (dependencyStatus == Firebase.DependencyStatus.Available) {
+                    // Setting a flag here to indicate whether Firebase is ready to use by the app.
+                    _firebaseActive = true;
+                    // Setting auth as initialized.
+                    _isInitialized = true;
+
+                    // If user is not logged in, he is redirected to LoginScene.
+                    if (_instance.Auth.CurrentUser != null) {
+                        _getUserWithAuthId(Auth.CurrentUser.UserId).ContinueWith(t =>
+                        {
+                            Debug.Log("Value with AuthId: " + t.Result.GetRawJsonValue());
+                            _isInitialized = true;
+
+                            Dictionary<string, object> snapshotVal = t.Result.Value as Dictionary<string, object>;
+                            if (snapshotVal.ContainsKey("groups") && snapshotVal["groups"].GetType() == typeof(Dictionary<string, System.Object>)) {
+                                Debug.Log("[AuthManager] Creating user with groups");
+                                Debug.Log(snapshotVal["groups"] + " -- " + snapshotVal["groups"].GetType());
+                                _currentUser = new User((string)snapshotVal["displayname"], Auth.CurrentUser.UserId,
+                                    (Dictionary<string, System.Object>)snapshotVal["groups"]);
+                            } else {
+                                Debug.Log("[AuthManager] Creating user without groups");
+                                _currentUser = new User((string)snapshotVal["displayname"], Auth.CurrentUser.UserId);
+                            }
+
+                        });
+                    }
+
                 } else {
-                    _getUserWithAuthId(Auth.CurrentUser.UserId);
-                }
-
-            } else {
-                Debug.LogError(string.Format(
-                    "Could not resolve all Firebase dependencies: {0}", dependencyStatus));
+                    Debug.LogError(string.Format(
+                        "Could not resolve all Firebase dependencies: {0}", dependencyStatus));
                     // Firebase Unity SDK is not safe to use here.
-            }
+                }
+            }).ContinueWith(t => { Debug.Log("done"); });
         });
     }
 
 
+    private bool _isInitialized = false;
+    public bool IsInitialized => _isInitialized;
+
     private static AuthManager _instance;
-    public static AuthManager Instance {
-        get { return _instance ?? new AuthManager(); }
-    }
+    public static AuthManager Instance => _instance ?? new AuthManager();
 
     private bool _firebaseActive = false;
-    public bool FirebaseActive {
-        get { return _firebaseActive; }
-    }
+    public bool FirebaseActive => _firebaseActive;
 
     private User _currentUser;
-    public User CurrentUser {
-        get { return _currentUser; }
-    }
+    public User CurrentUser => _currentUser;
 
     private RealtimeDatabaseManager _rDBManager;
 
     private FirebaseApp _app;
-    public Firebase.Auth.FirebaseAuth Auth;
+    public Firebase.Auth.FirebaseAuth Auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
     public Dictionary<string, Firebase.Auth.FirebaseUser> UserByAuth = new Dictionary<string, Firebase.Auth.FirebaseUser>();
 
     public void RegisterWithEmail(string email, string password) {
@@ -147,37 +164,45 @@ public class AuthManager {
                 newUser.DisplayName, newUser.UserId);
 
             if (Auth.CurrentUser != null) {
-                _getUserWithAuthId(Auth.CurrentUser.UserId).ContinueWith(t => {
-                    if (t.IsFaulted) {
-                        // Handle the error...
-                        Debug.Log("[AuthManager] Failed getting user: " + t.Exception);
-                    } else if (t.IsCompleted) {
-                        Dictionary<string, object> snapshotVal = t.Result.Value as Dictionary<string, object>;
+                GetUserWithAuthId();
+            }
+        });
+    }
 
-                        if (snapshotVal != null) {
-                            Debug.Log("[AuthManager] Creating user from: " + JsonConvert.SerializeObject(snapshotVal));
-                            // Setting _currentUser to the snapshot, then returning to Main menu.
-                            if (snapshotVal.ContainsKey("groups") && snapshotVal["groups"].GetType() == typeof(Dictionary<string, System.Object>)) {
-                                Debug.Log("[AuthManager] Creating user with groups");
-                                Debug.Log(snapshotVal["groups"] + " -- " + snapshotVal["groups"].GetType());
-                                _currentUser = new User((string) snapshotVal["displayname"], Auth.CurrentUser.UserId, 
-                                    (Dictionary<string, System.Object>) snapshotVal["groups"]);
-                            } else {
-                                Debug.Log("[AuthManager] Creating user without groups");
-                                _currentUser = new User((string)snapshotVal["displayname"], Auth.CurrentUser.UserId);
-                            }
+    public void GetUserWithAuthId() {
+        GetUserWithAuthId(Auth.CurrentUser.UserId);
+    }
 
+    public void GetUserWithAuthId(string AuthId) {
+        _getUserWithAuthId(Auth.CurrentUser.UserId).ContinueWith(t => {
+            if (t.IsFaulted) {
+                // Handle the error...
+                Debug.Log("[AuthManager] Failed getting user: " + t.Exception);
+            } else if (t.IsCompleted) {
+                Dictionary<string, object> snapshotVal = t.Result.Value as Dictionary<string, object>;
 
-                            _currentUser.TotalScore = (int)(long)snapshotVal["total_score"];
-                            _currentUser.UserSince = (long)snapshotVal["user_since"];
-                            //_currentUser.Groups = (List<>)
-
-                            Debug.Log("[AuthManager] user values: " + JsonConvert.SerializeObject(snapshotVal));
-
-                            SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
-                        }
+                if (snapshotVal != null) {
+                    Debug.Log("[AuthManager] Creating user from: " + JsonConvert.SerializeObject(snapshotVal));
+                    // Setting _currentUser to the snapshot, then returning to Main menu.
+                    if (snapshotVal.ContainsKey("groups") && snapshotVal["groups"].GetType() == typeof(Dictionary<string, System.Object>)) {
+                        Debug.Log("[AuthManager] Creating user with groups");
+                        Debug.Log(snapshotVal["groups"] + " -- " + snapshotVal["groups"].GetType());
+                        _currentUser = new User((string)snapshotVal["displayname"], Auth.CurrentUser.UserId,
+                            (Dictionary<string, System.Object>)snapshotVal["groups"]);
+                    } else {
+                        Debug.Log("[AuthManager] Creating user without groups");
+                        _currentUser = new User((string)snapshotVal["displayname"], Auth.CurrentUser.UserId);
                     }
-                });
+
+
+                    _currentUser.TotalScore = (int)(long)snapshotVal["total_score"];
+                    _currentUser.UserSince = (long)snapshotVal["user_since"];
+                    //_currentUser.Groups = (List<>)
+
+                    Debug.Log("[AuthManager] user values: " + JsonConvert.SerializeObject(snapshotVal));
+
+                    SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+                }
             }
         });
     }

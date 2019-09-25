@@ -34,6 +34,7 @@ namespace Assets.Scripts.Firebase {
                 //Setting up subscription to positions in all of the user's groups
                 //TODO: make sure not to repeat/duplicate users who are in multiple groups.
                 foreach (string groupId in AuthManager.Instance.CurrentUser.Groups.Values) {
+                    Console.WriteLine("Connecting to " + groupId);
                     RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
                         .GetReference("groups/map/" + groupId + "/protected/members")
                         .ValueChanged += HandlePositionChanged;
@@ -59,7 +60,7 @@ namespace Assets.Scripts.Firebase {
                         Position pos = new Position(
                             (double) posDict["lat"], 
                             (double) posDict["lng"],
-                            (long) posDict["alt"]);
+                            (double) posDict["alt"]);
 
                         Debug.Log("Position element: " + entry.Key + ": " + pos);
                         dropPin(pos);
