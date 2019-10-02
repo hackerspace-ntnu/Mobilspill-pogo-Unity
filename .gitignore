@@ -72,6 +72,7 @@ ExportedObj/
 /Assets/Plugins/Android/Firebase/
 /Assets/Plugins/Android/Firebase*
 /Assets/Plugins/iOS/Firebase/
+/Assets/Plugins/iOS.meta
 /Assets/Plugins/iOS/Firebase*
 /Assets/Plugins/x86_64/Firebase/
 /Assets/Plugins/x86_64/Firebase*
@@ -135,6 +136,7 @@ console/firebase-debug.log
 
 # GO Map
 Assets/GOMap/*
+Assets/GOMap.meta
 
 # Plugins
 'Assets/Plugins'
