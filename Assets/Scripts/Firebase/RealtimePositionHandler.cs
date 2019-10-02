@@ -58,9 +58,9 @@ namespace Assets.Scripts.Firebase {
                     if(entry.Key != AuthManager.Instance.CurrentUser.UserId && memberVal.ContainsKey("position")){
                         Dictionary<string, object> posDict = (Dictionary<string, object>) memberVal["position"];
                         Position pos = new Position(
-                            (double) posDict["lat"], 
-                            (double) posDict["lng"],
-                            (double) posDict["alt"]);
+                            _objectToDouble(posDict["lat"]), 
+                            _objectToDouble(posDict["lng"]),
+                            _objectToDouble(posDict["alt"]));
 
                         Debug.Log("Position element: " + entry.Key + ": " + pos);
                         dropPin(pos);
@@ -69,6 +69,16 @@ namespace Assets.Scripts.Firebase {
                 Debug.Log(snapshotVal);
 
             }
+        }
+
+        private double _objectToDouble(object o) {
+            double d = 0d;
+            IConvertible convert = o as IConvertible;
+
+            if (convert != null) {
+                d = convert.ToDouble(null);
+            } 
+            return d;
         }
 
         public void PushPositionUpdates(User user, Position serverPosition) {
