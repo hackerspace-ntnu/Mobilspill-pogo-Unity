@@ -2,8 +2,15 @@
 ** Technologies
 - Unity
 - GOMaps
+- Firebase
 
 ** Style
 - TODO: C#/Unity Linter
 
 - [[./git-guidelines.md][Git guidelines]]
+
+** Necessary:
+- Git
+- Git-lfs
+- GOMap
+- GServices files
