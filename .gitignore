@@ -1,8 +1,5 @@
 ### UNIKT FOR OSS
 
-# GO Map
-/Assets/GOMap/**
-
 # Ikkje ignorer subfolders! Nødvendeg for å behalda berre .meta filer!
 !*/
 
@@ -71,16 +68,11 @@ crashlytics-build.properties
 ### MechaHamster SIN .GITIGNORE
 
 # Credential files:
-**/GoogleService-Info*.plist*
-**/google-services*.json*
 /Assets/StreamingAssets*
 /Assets/StreamingAssets/
 
 # Keystore
 *.keystore
-
-# Keystore
-### mechahamster.keystore
 
 # Daydream state files:
 GvrIgnoreManifestMergeCheck.txt
