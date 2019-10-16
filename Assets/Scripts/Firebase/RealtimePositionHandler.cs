@@ -31,8 +31,12 @@ namespace Assets.Scripts.Firebase {
                 Debug.LogError("User should exist when using RealtimePositionHandler");
                 Application.Quit();
             } else {
+                
+		        goMap.locationManager.onLocationChanged.AddListener((Coordinates) => {AuthManager.Instance.CurrentUser.OnLocationChanged(Coordinates);});
+                
                 //Setting up subscription to positions in all of the user's groups
                 //TODO: make sure not to repeat/duplicate users who are in multiple groups.
+                
                 foreach (string groupId in AuthManager.Instance.CurrentUser.Groups.Values) {
                     Console.WriteLine("Connecting to " + groupId);
                     RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
