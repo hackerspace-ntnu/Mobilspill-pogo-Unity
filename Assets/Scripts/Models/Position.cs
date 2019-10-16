@@ -10,25 +10,25 @@ namespace Assets.Scripts.Models {
 
         [JsonIgnore]
         public bool IsEmpty {
-            get { return Coordinates == null; }
+            get { return _coordinates == null; }
         }
 
         [JsonProperty("lat")]
         public double Latitude {
-            get { return Coordinates.latitude; }
-            set { Coordinates.latitude = value; }
+            get { return _coordinates.latitude; }
+            set { _coordinates.latitude = value; }
         }
 
         [JsonProperty("lng")]
         public double Longitude {
-            get { return Coordinates.longitude; }
-            set { Coordinates.longitude = value; }
+            get { return _coordinates.longitude; }
+            set { _coordinates.longitude = value; }
         }
 
         [JsonProperty("alt")]
         public double Altitude {
-            get { return Coordinates.altitude; }
-            set { Coordinates.altitude = value; }
+            get { return _coordinates.altitude; }
+            set { _coordinates.altitude = value; }
         }
 
         private object _timestamp = ServerValue.Timestamp;
@@ -39,21 +39,29 @@ namespace Assets.Scripts.Models {
         }
 
         [JsonIgnore]
-        public Coordinates Coordinates { get; set;}
+        private Coordinates _coordinates;
+
+        [JsonIgnore]
+        public Coordinates Coordinates { 
+            get {return _coordinates;} 
+            set {
+                _coordinates = new Coordinates(value.latitude,value.longitude,value.altitude);
+            }
+        }
 
         public Position() { }
 
         public Position(double lat, double lng, double alt) {
-            Coordinates = new Coordinates(lat, lng, alt);
+            _coordinates = new Coordinates(lat, lng, alt);
         }
 
         public Position(double lat, double lng, double alt, object timestamp) {
-            Coordinates = new Coordinates(lat, lng, alt);
+            _coordinates = new Coordinates(lat, lng, alt);
             Timestamp = timestamp;
         }
 
         public override string ToString() {
-            return string.Format("lat: {0}, lng: {1}, alt: {2}", Latitude, Longitude, Altitude);
+            return IsEmpty ? "null" : string.Format("lat: {0}, lng: {1}, alt: {2}", Latitude, Longitude, Altitude);
         }
 
         public Dictionary<string, System.Object> ToDictionary() {
