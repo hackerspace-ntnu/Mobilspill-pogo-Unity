@@ -3,6 +3,14 @@
 # Ikkje ignorer subfolders! Nødvendeg for å behalda berre .meta filer!
 !*/
 
+# Ignorer nokre automatisk nedlasta google plugins filar, som er forskjellig frå build til build.
+/Assets/Plugins/Android/com.google.*
+/Assets/Plugins/Android/androidx.*
+
+# \ blir til / når ein skiftar frå windows til linux lol
+/ProjectSettings/AndroidResolverDependencies.xml
+
+
 ### DEFAULT UNITY .GITIGNORE
 
 # This .gitignore file should be placed at the root of your Unity project directory
@@ -18,7 +26,8 @@
 /[Mm]emoryCaptures/
 
 # Never ignore Asset meta data
-!/[Aa]ssets/**/**.meta
+###!/[Aa]ssets/**/**.meta
+### Er no kommentert vekk, fordi me ikkje lenger har klusset med GO Map og andre filar. Dette hjelper også med å ignorera nokre urelaterte metafilar som er forskjellig frå pc til pc.
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
