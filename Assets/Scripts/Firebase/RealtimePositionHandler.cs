@@ -31,8 +31,12 @@ namespace Assets.Scripts.Firebase {
                 Debug.LogError("User should exist when using RealtimePositionHandler");
                 Application.Quit();
             } else {
+                
+		        goMap.locationManager.onLocationChanged.AddListener((Coordinates) => {AuthManager.Instance.CurrentUser.OnLocationChanged(Coordinates);});
+                
                 //Setting up subscription to positions in all of the user's groups
                 //TODO: make sure not to repeat/duplicate users who are in multiple groups.
+                
                 foreach (string groupId in AuthManager.Instance.CurrentUser.Groups.Values) {
                     Console.WriteLine("Connecting to " + groupId);
                     RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
@@ -53,7 +57,7 @@ namespace Assets.Scripts.Firebase {
 
             if (snapshotVal != null) {
                 foreach (KeyValuePair<string, object> entry in snapshotVal) {
-                    Debug.Log("Pos: " + JsonConvert.SerializeObject(snapshotVal));
+                    //Debug.Log("Pos: " + JsonConvert.SerializeObject(snapshotVal));
                     Dictionary<string, object> memberVal = ((Dictionary<string, object>) entry.Value);
                     if(entry.Key != AuthManager.Instance.CurrentUser.UserId && memberVal.ContainsKey("position")){
                         Dictionary<string, object> posDict = (Dictionary<string, object>) memberVal["position"];
@@ -66,7 +70,7 @@ namespace Assets.Scripts.Firebase {
                         dropPin(pos);
                     }
                 }
-                Debug.Log(snapshotVal);
+                //Debug.Log(snapshotVal);
 
             }
         }

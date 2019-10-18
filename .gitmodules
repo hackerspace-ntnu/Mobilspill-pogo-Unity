@@ -1,0 +1,3 @@
+[submodule "Assets/pogo-gomap"]
+	path = Assets/pogo-gomap
+	url = https://github.com/jorgenbele/pogo-gomap.git
