@@ -8,6 +8,7 @@ using Firebase.Unity.Editor;
 using GoMap;
 using GoShared;
 using Newtonsoft.Json;
+using UnityEditor;
 using UnityEngine;
 
 namespace Assets.Scripts.Firebase {
@@ -50,6 +51,10 @@ namespace Assets.Scripts.Firebase {
         void HandlePositionChanged(object sender, ValueChangedEventArgs args) {
             if (args.DatabaseError != null) {
                 Debug.LogError(args.DatabaseError.Message);
+                return;
+            }
+            if (EditorApplication.isPlaying == false)
+            {
                 return;
             }
             // Do something with the data in args.Snapshot
