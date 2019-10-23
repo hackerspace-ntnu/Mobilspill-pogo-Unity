@@ -9,7 +9,8 @@
 
 # \ blir til / når ein skiftar frå windows til linux lol
 /ProjectSettings/AndroidResolverDependencies.xml
-
+/ProjectSettings/GraphicsSettings.asset
+/ProjectSettings/ProjectSettings.asset
 
 ### DEFAULT UNITY .GITIGNORE
 
