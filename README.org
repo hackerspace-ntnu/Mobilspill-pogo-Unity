@@ -2,8 +2,34 @@
 ** Technologies
 - Unity
 - GOMaps
+- Firebase
 
 ** Style
 - TODO: C#/Unity Linter
 
 - [[./git-guidelines.md][Git guidelines]]
+
+** Necessary
+- git
+- git-lfs
+
+** How to install:
+- git clone [repository]
+- git checkout [repo]
+- git submodule init
+- git submodule update
+
+** How to update:
+- git pull
+- git submodule update
+
+** How to push changes on submodule pogo-gomap:
+- cd pogo-gomap
+- git checkout [repo]
+- git add [files]
+- git commit
+- git push
+- cd ..
+- git add pogo-gomap
+- git commit -m "Update pogo-gomap with commit [refer to commit]"
+- git push
