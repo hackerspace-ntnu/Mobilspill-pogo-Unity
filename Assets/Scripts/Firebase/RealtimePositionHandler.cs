@@ -10,6 +10,7 @@ using GoShared;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
 
 namespace Assets.Scripts.Firebase {
 
@@ -71,6 +72,12 @@ namespace Assets.Scripts.Firebase {
                             {
                                 // Add new remoteuser gameobject
                                 RemoteUser newUser = Instantiate(RemoteUserPrefab);
+
+                                Debug.Log(string.Join(", ", memberVal.Keys.Select( key => key.ToString())));
+                                if (memberVal.ContainsKey("score"))
+                                {
+                                    newUser.Initialize(entry.Key);
+                                }
                                 remoteUsers.Add(entry.Key, newUser);
                             }
                             if (memberVal.ContainsKey("position"))
