@@ -17,9 +17,9 @@ namespace Assets.Scripts.Firebase {
 
         public GOMap goMap;
 
-        public Material testLineMaterial;
-        public Material testPolygonMaterial;
-        public GOUVMappingStyle uvMappingStyle = GOUVMappingStyle.TopFitSidesRatio;
+        public RemoteUser RemoteUserPrefab;
+
+        private Dictionary<string, RemoteUser> remoteUsers;
 
 
         // Use this for initialization
@@ -32,7 +32,7 @@ namespace Assets.Scripts.Firebase {
                 Debug.LogError("User should exist when using RealtimePositionHandler");
                 Application.Quit();
             } else {
-                
+                remoteUsers = new Dictionary<string, RemoteUser>();
 		        goMap.locationManager.onLocationChanged.AddListener((Coordinates) => {AuthManager.Instance.CurrentUser.OnLocationChanged(Coordinates);});
                 
                 //Setting up subscription to positions in all of the user's groups
@@ -45,7 +45,6 @@ namespace Assets.Scripts.Firebase {
                         .ValueChanged += HandlePositionChanged;
                 }
             }
-
         }
 
         void HandlePositionChanged(object sender, ValueChangedEventArgs args) {
@@ -64,18 +63,41 @@ namespace Assets.Scripts.Firebase {
                 foreach (KeyValuePair<string, object> entry in snapshotVal) {
                     //Debug.Log("Pos: " + JsonConvert.SerializeObject(snapshotVal));
                     Dictionary<string, object> memberVal = ((Dictionary<string, object>) entry.Value);
-                    if(entry.Key != AuthManager.Instance.CurrentUser.UserId && memberVal.ContainsKey("position")){
-                        Dictionary<string, object> posDict = (Dictionary<string, object>) memberVal["position"];
-                        Position pos = new Position(
-                            _objectToDouble(posDict["lat"]), 
-                            _objectToDouble(posDict["lng"]),
-                            _objectToDouble(posDict["alt"]));
+                    if(entry.Key != AuthManager.Instance.CurrentUser.UserId){
 
-                        Debug.Log("Position element: " + entry.Key + ": " + pos);
-                        dropPin(pos);
+                        if (true){// || memberVal.ContainsKey("isactive") && ((bool)memberVal["isactive"])) {
+                            
+                            if ( remoteUsers.ContainsKey(entry.Key) == false)
+                            {
+                                // Add new remoteuser gameobject
+                                RemoteUser newUser = Instantiate(RemoteUserPrefab);
+                                remoteUsers.Add(entry.Key, newUser);
+                            }
+                            if (memberVal.ContainsKey("position"))
+                            {
+                                Dictionary<string, object> posDict = (Dictionary<string, object>) memberVal["position"];
+                                Position pos = new Position(
+                                    _objectToDouble(posDict["lat"]), 
+                                    _objectToDouble(posDict["lng"]),
+                                    _objectToDouble(posDict["alt"]));
+
+
+                                remoteUsers[entry.Key].UpdatePosition(pos);
+                            }
+                        }
+                        else
+                        {
+                            //Player is not active on the server
+
+                            if (remoteUsers.ContainsKey(entry.Key))
+                            {
+                                //Delete the remoteuser gameobject
+                                Destroy(remoteUsers[entry.Key]);
+                                remoteUsers.Remove(entry.Key);
+                            }
+                        }
                     }
                 }
-                //Debug.Log(snapshotVal);
 
             }
         }
@@ -94,48 +116,7 @@ namespace Assets.Scripts.Firebase {
             
         }
 
-        void dropPin(Position pos) {
-            dropPin(pos.Latitude, pos.Longitude);
-        }
-
-        void dropPin(double lng, double lat){
-            //1) create game object (you can instantiate a prefab instead)
-            GameObject aBigRedSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            aBigRedSphere.transform.localScale = new Vector3(10, 10, 10);
-            aBigRedSphere.GetComponent<MeshRenderer>().material.color = Color.green;
-
-
-            //2) make a Coordinate class with your desired latitude longitude
-            //CHANGED TO GLØS COORDINATES
-            Coordinates coordinates = new Coordinates(lng, lat);
-
-            //3) call drop pin passing the coordinates and your gameobject
-            goMap.dropPin(coordinates, aBigRedSphere);
-
-        }
         
-        void dropPolygon(){
-            
-            //Drop polygon is very similar to the drop line example, just make sure the coordinates will form a closed shape. 
-
-            //1) Create a list of coordinates that will represent the polygon
-            List<Coordinates> shape = new List<Coordinates>();
-            shape.Add(new Coordinates(48.8744621276855, 2.29504323005676));
-            shape.Add(new Coordinates(48.8744010925293, 2.29542183876038));
-            shape.Add(new Coordinates(48.8747596740723, 2.29568862915039));
-            shape.Add(new Coordinates(48.8748931884766, 2.29534268379211));
-            shape.Add(new Coordinates(48.8748245239258, 2.29496765136719));
-
-            //2) Set the line height
-            float height = 20;
-
-            //3) Choose a material for the line (this time we link the material from the inspector)
-            Material material = testPolygonMaterial;
-
-            //4) call drop line
-            goMap.dropPolygon(shape, height, material, uvMappingStyle);
-
-        }
 
     }
 }
