@@ -49,7 +49,7 @@ namespace Assets.Scripts.Models {
             }
         }
 
-        public Position() { }
+        public Position() { Coordinates = new Coordinates(0,0); }
 
         public Position(double lat, double lng, double alt) {
             _coordinates = new Coordinates(lat, lng, alt);

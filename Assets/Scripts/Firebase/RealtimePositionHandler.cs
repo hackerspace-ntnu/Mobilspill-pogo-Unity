@@ -46,10 +46,12 @@ namespace Assets.Scripts.Firebase {
                         .ValueChanged += HandlePositionChanged;
 
                     
-                    RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
-                        .GetReference("groups/map/" + groupId + "/protected/members/"+AuthManager.Instance.CurrentUser.UserId+"/position")
-                        .ValueChanged += Test;
+                    // RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
+                    //     .GetReference("groups/map/" + groupId + "/protected/members/"+AuthManager.Instance.CurrentUser.UserId+"/position")
+                    //     .ValueChanged += Test;
                 }
+
+                OnApplicationPause(false);
             }
         }
 
@@ -58,10 +60,13 @@ namespace Assets.Scripts.Firebase {
                 Debug.LogError(args.DatabaseError.Message);
                 return;
             }
+            #if UNITY_EDITOR
             if (EditorApplication.isPlaying == false)
             {
                 return;
             }
+            #endif
+
             // Do something with the data in args.Snapshot
             Dictionary<string, object> snapshotVal = args.Snapshot.Value as Dictionary<string, object>;
 
@@ -71,7 +76,7 @@ namespace Assets.Scripts.Firebase {
                     Dictionary<string, object> memberVal = ((Dictionary<string, object>) entry.Value);
                     if(entry.Key != AuthManager.Instance.CurrentUser.UserId){
 
-                        if (true){// || memberVal.ContainsKey("is_active") && ((bool)memberVal["is_active"])) {
+                        if (!memberVal.ContainsKey("logged_in") || ((bool)memberVal["logged_in"])) {
                             
                             if ( remoteUsers.ContainsKey(entry.Key) == false)
                             {
@@ -112,6 +117,16 @@ namespace Assets.Scripts.Firebase {
             }
         }
 
+        void OnApplicationPause(bool pauseStatus)
+        {
+            AuthManager.Instance.CurrentUser.OnApplicationPause(pauseStatus);
+        }
+
+        void OnDestroy()
+        {
+            OnApplicationPause(true);
+        }
+
         public void PushPositionUpdates(User user, Position serverPosition) {
             
         }
@@ -121,10 +136,12 @@ namespace Assets.Scripts.Firebase {
                 Debug.LogError(args.DatabaseError.Message);
                 return;
             }
+            #if UNITY_EDITOR
             if (EditorApplication.isPlaying == false)
             {
                 return;
             }
+            #endif
             Dictionary<string, object> posDict = args.Snapshot.Value as Dictionary<string, object>;
             Debug.Log(posDict["lat"].ToString());
         }

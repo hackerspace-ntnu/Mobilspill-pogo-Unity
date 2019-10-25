@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Assets.Scripts.Firebase;
 using Firebase.Database;
 using GoShared;
@@ -160,11 +161,7 @@ namespace Assets.Scripts.Models {
             if (ServerPosition.IsEmpty || ServerPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 0.00001) {
                 ServerPosition.Coordinates = newPos;
 
-                Dictionary<string, object> updatePosDict = new Dictionary<string, object>();
-                foreach (KeyValuePair<string, GroupMember> membership in GroupMemberships) {
-                    updatePosDict["groups/map/" + membership.Key + "/protected/members/" + AuthManager.Instance.CurrentUser.UserId+"/position"] = Position.ToDictionary();
-                    //Debug.Log("[User] updatePosDict: " + JsonConvert.SerializeObject(updatePosDict));
-                }
+                var updatePosDict = CreateFirebaseQueryForAllGroups("position", Position.ToDictionary());
 
                 //todo: push to server for all group memberships
                 RealtimeDatabaseManager.Instance.DBReference.UpdateChildrenAsync(updatePosDict)
@@ -178,6 +175,36 @@ namespace Assets.Scripts.Models {
                     }
                 );
             }
+        }
+
+        public void OnApplicationPause(bool pauseStatus)
+        {
+            ///
+            Debug.Log("Game has paused: "+ pauseStatus);
+
+            Dictionary<string, object> logged_in = CreateFirebaseQueryForAllGroups("logged_in", !pauseStatus);
+
+            RealtimeDatabaseManager.Instance.DBReference.UpdateChildrenAsync(logged_in)
+                .ContinueWith(res => {
+                    if (res.IsCompleted) {
+                        //todo: decide if necessary to react to this change in-game or not, and if so do.
+                        Debug.Log("logged_in updated successfully!");
+                    } else {
+                        Debug.LogError("Something went wrong while updating logged_in. Fuck! error: " + res.Exception);
+                    }
+                }
+            );
+
+        }
+
+        public Dictionary<string, object> CreateFirebaseQueryForAllGroups (string property, object value)
+        {
+            Dictionary<string, object> query = new Dictionary<string, object>();
+
+            foreach (KeyValuePair<string, GroupMember> membership in GroupMemberships) {
+                query[String.Format("groups/map/{0}/protected/members/{1}/{2}", membership.Key, UserId, property)] = value;
+            }
+            return query;
         }
 
         public Dictionary<string, System.Object> ToDictionary() {
