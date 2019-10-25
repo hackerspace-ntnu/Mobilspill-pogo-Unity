@@ -120,6 +120,19 @@ namespace Assets.Scripts.Models {
             return toReturn;
         }
 
+        public void FromDictionary(Dictionary<string, object> dictionary)
+        {
+            PublicInfo.Score = (int)dictionary["score"];
+            PublicInfo.MemberSince = dictionary["member_since"];
+            PublicInfo.IsOwner = (bool)dictionary["is_owner"];
+            PublicInfo.SharePosition = (bool)dictionary["share_position"];
+
+            if(dictionary.ContainsKey("position"))
+            {
+                Position.Position.FromDictionary(dictionary["position"] as Dictionary<string,object>);
+            }
+        }
+
 
         public override string ToString(){
             return PublicInfo.Score + "," + PublicInfo.LastModified;

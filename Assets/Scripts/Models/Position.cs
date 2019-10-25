@@ -74,6 +74,24 @@ namespace Assets.Scripts.Models {
 
             return toReturn;
         }
+
+        public void FromDictionary(Dictionary<string, System.Object> dictionary)
+        {
+            Longitude = _objectToDouble(dictionary["lng"]);
+            Altitude = _objectToDouble(dictionary["alt"]);
+            Latitude = _objectToDouble(dictionary["lat"]);
+        }
+
+        private double _objectToDouble(object o) {
+            double d = 0d;
+            IConvertible convert = o as IConvertible;
+
+            if (convert != null) {
+                d = convert.ToDouble(null);
+            } 
+            return d;
+        }
     }
+
 
 }

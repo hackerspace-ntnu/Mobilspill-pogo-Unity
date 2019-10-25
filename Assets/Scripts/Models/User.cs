@@ -162,7 +162,7 @@ namespace Assets.Scripts.Models {
 
                 Dictionary<string, object> updatePosDict = new Dictionary<string, object>();
                 foreach (KeyValuePair<string, GroupMember> membership in GroupMemberships) {
-                    updatePosDict["groups/map/" + membership.Key + "/protected/members/" + AuthManager.Instance.CurrentUser.UserId] = membership.Value.ToDictionary(Position);
+                    updatePosDict["groups/map/" + membership.Key + "/protected/members/" + AuthManager.Instance.CurrentUser.UserId+"/position"] = Position.ToDictionary();
                     //Debug.Log("[User] updatePosDict: " + JsonConvert.SerializeObject(updatePosDict));
                 }
 
@@ -198,6 +198,18 @@ namespace Assets.Scripts.Models {
 
         public override string ToString() {
             return UserName;
+        }
+
+        public void FromDictionary(Dictionary<string, object> dictionary)
+        {
+            UserName = dictionary["username"] as string;
+            DisplayName = dictionary["displayname"] as string;
+            UserSince = dictionary["user_since"];
+            TotalScore = (int)dictionary["total_score"];
+
+            if (Groups.Count > 0) {
+                Groups = dictionary["groups"] as Dictionary<string,object>;
+            }
         }
     }
 }

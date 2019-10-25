@@ -44,6 +44,11 @@ namespace Assets.Scripts.Firebase {
                     RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
                         .GetReference("groups/map/" + groupId + "/protected/members")
                         .ValueChanged += HandlePositionChanged;
+
+                    
+                    RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
+                        .GetReference("groups/map/" + groupId + "/protected/members/"+AuthManager.Instance.CurrentUser.UserId+"/position")
+                        .ValueChanged += Test;
                 }
             }
         }
@@ -66,7 +71,7 @@ namespace Assets.Scripts.Firebase {
                     Dictionary<string, object> memberVal = ((Dictionary<string, object>) entry.Value);
                     if(entry.Key != AuthManager.Instance.CurrentUser.UserId){
 
-                        if (true){// || memberVal.ContainsKey("isactive") && ((bool)memberVal["isactive"])) {
+                        if (true){// || memberVal.ContainsKey("is_active") && ((bool)memberVal["is_active"])) {
                             
                             if ( remoteUsers.ContainsKey(entry.Key) == false)
                             {
@@ -83,10 +88,8 @@ namespace Assets.Scripts.Firebase {
                             if (memberVal.ContainsKey("position"))
                             {
                                 Dictionary<string, object> posDict = (Dictionary<string, object>) memberVal["position"];
-                                Position pos = new Position(
-                                    _objectToDouble(posDict["lat"]), 
-                                    _objectToDouble(posDict["lng"]),
-                                    _objectToDouble(posDict["alt"]));
+                                Position pos = new Position();
+                                pos.FromDictionary(posDict);
 
 
                                 remoteUsers[entry.Key].UpdatePosition(pos);
@@ -109,20 +112,22 @@ namespace Assets.Scripts.Firebase {
             }
         }
 
-        private double _objectToDouble(object o) {
-            double d = 0d;
-            IConvertible convert = o as IConvertible;
-
-            if (convert != null) {
-                d = convert.ToDouble(null);
-            } 
-            return d;
-        }
-
         public void PushPositionUpdates(User user, Position serverPosition) {
             
         }
 
+        void Test(object sender, ValueChangedEventArgs args) {
+            if (args.DatabaseError != null) {
+                Debug.LogError(args.DatabaseError.Message);
+                return;
+            }
+            if (EditorApplication.isPlaying == false)
+            {
+                return;
+            }
+            Dictionary<string, object> posDict = args.Snapshot.Value as Dictionary<string, object>;
+            Debug.Log(posDict["lat"].ToString());
+        }
         
 
     }

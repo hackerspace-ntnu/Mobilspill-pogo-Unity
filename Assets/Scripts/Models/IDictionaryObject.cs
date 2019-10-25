@@ -6,5 +6,7 @@ namespace Assets.Scripts.Models {
 
         Dictionary<string, Object> ToDictionary();
 
+        void FromDictionary(Dictionary<string,object> dictionary);
+
     }
 }
