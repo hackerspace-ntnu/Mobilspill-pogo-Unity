@@ -22,130 +22,128 @@ namespace Assets.Scripts.Firebase {
 
         private Dictionary<string, RemoteUser> remoteUsers;
 
+        private Position CurrentUserPosition = new Position();
+        private Position CurrentUserPreviousPosition = new Position();
+
+        private List<string> LoggedInPlayers = new List<string>();
+
+        private string CurrentUserId;
 
         // Use this for initialization
         IEnumerator Start() {
             //Waiting for the location manager to have the world origin set.
             yield return StartCoroutine(goMap.locationManager.WaitForOriginSet());
 
-            //if user does not exists, throw an error -> should never happen
-            if (AuthManager.Instance.CurrentUser == null) {
-                Debug.LogError("User should exist when using RealtimePositionHandler");
-                Application.Quit();
-            } else {
-                remoteUsers = new Dictionary<string, RemoteUser>();
-		        goMap.locationManager.onLocationChanged.AddListener((Coordinates) => {AuthManager.Instance.CurrentUser.OnLocationChanged(Coordinates);});
-                
-                //Setting up subscription to positions in all of the user's groups
-                //TODO: make sure not to repeat/duplicate users who are in multiple groups.
-                
-                foreach (string groupId in AuthManager.Instance.CurrentUser.Groups.Values) {
-                    Console.WriteLine("Connecting to " + groupId);
-                    RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
-                        .GetReference("groups/map/" + groupId + "/protected/members")
-                        .ValueChanged += HandlePositionChanged;
+            
 
-                    
-                    // RealtimeDatabaseManager.Instance.RealtimeDatabaseInstance
-                    //     .GetReference("groups/map/" + groupId + "/protected/members/"+AuthManager.Instance.CurrentUser.UserId+"/position")
-                    //     .ValueChanged += Test;
-                }
+            remoteUsers = new Dictionary<string, RemoteUser>();
 
-                OnApplicationPause(false);
+            goMap.locationManager.onLocationChanged.AddListener(coords => {OnLocationChanged(coords);});
+            //UserDatabase.Positions.ValueChanged += HandlePositionChanged;
+            UserDatabase.LoggedIn.ChildChanged += HandleChildChanged;
+
+            CurrentUserId = AuthManager.Instance.CurrentUser.UserId;
+
+            if (string.IsNullOrEmpty(CurrentUserId))
+            
+            {
+                Debug.LogError("[RealtimePositionHandler] UserId should not be null!!!");
+                AuthManager.Instance.LogOut();
+            }
+            OnApplicationPause(false);
+
+            UserDatabase.RetrievePropertyData(UserDatabase.Positions, CurrentUserId).ContinueWith( task => {
+
+                var positionData = task.Result as Dictionary<string,object>;
+                CurrentUserPosition.FromDictionary( positionData);
+                CurrentUserPreviousPosition.FromDictionary( positionData);
+            });
+
+
+            var userTask = UserDatabase.LoggedIn.OrderByValue().EqualTo(true).GetValueAsync();
+            while (userTask.IsCompleted == false) {
+                yield return null;
+            }
+            if (userTask.IsFaulted)
+            {
+                Debug.LogError(userTask.Exception);
+            }
+
+            foreach (var entry in userTask.Result.Value as Dictionary<string, object>)
+            {
+                UpdateRemoteUserList( entry.Key, (bool)entry.Value);
+            }
+
+
+        }
+
+        private void OnLocationChanged(Coordinates newPos) {
+            CurrentUserPosition.Coordinates = newPos;
+            
+            //If more than (i believe) approx. 10 meter difference: update and push to server.
+            if (CurrentUserPreviousPosition.IsEmpty || CurrentUserPreviousPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 0.00001) {
+                CurrentUserPreviousPosition.Coordinates = newPos;
+
+                UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserId, CurrentUserPosition.ToDictionary());
             }
         }
 
-        void HandlePositionChanged(object sender, ValueChangedEventArgs args) {
+
+        private void HandleChildChanged(object sender, ChildChangedEventArgs args) {
             if (args.DatabaseError != null) {
                 Debug.LogError(args.DatabaseError.Message);
                 return;
             }
-            #if UNITY_EDITOR
-            if (EditorApplication.isPlaying == false)
-            {
+            //Debug.Log(args.Snapshot.Key + " " + args.Snapshot.Value);
+
+
+            var key = (string) args.Snapshot.Key;
+            var value = (bool) args.Snapshot.Value;
+
+            UpdateRemoteUserList(key, value);
+        }
+
+        private void UpdateRemoteUserList(string key, bool value)
+        {
+            if (key == AuthManager.Instance.CurrentUser.UserId)
                 return;
+
+            Debug.Log(key + " " + value);
+
+            if (value == true)
+            {
+                RemoteUser newUser = Instantiate(RemoteUserPrefab);
+                UserDatabase.RetrievePropertyData(UserDatabase.Usernames, key).ContinueWith(t => newUser.SetDisplayName((string)t.Result));
+                remoteUsers.Add(key, newUser);
+                UserDatabase.Positions.Child(key).ValueChanged += remoteUsers[key].UpdatePosition;
             }
-            #endif
-
-            // Do something with the data in args.Snapshot
-            Dictionary<string, object> snapshotVal = args.Snapshot.Value as Dictionary<string, object>;
-
-            if (snapshotVal != null) {
-                foreach (KeyValuePair<string, object> entry in snapshotVal) {
-                    //Debug.Log("Pos: " + JsonConvert.SerializeObject(snapshotVal));
-                    Dictionary<string, object> memberVal = ((Dictionary<string, object>) entry.Value);
-                    if(entry.Key != AuthManager.Instance.CurrentUser.UserId){
-
-                        if (!memberVal.ContainsKey("logged_in") || ((bool)memberVal["logged_in"])) {
-                            
-                            if ( remoteUsers.ContainsKey(entry.Key) == false)
-                            {
-                                // Add new remoteuser gameobject
-                                RemoteUser newUser = Instantiate(RemoteUserPrefab);
-
-                                Debug.Log(string.Join(", ", memberVal.Keys.Select( key => key.ToString())));
-                                if (memberVal.ContainsKey("score"))
-                                {
-                                    newUser.Initialize(entry.Key);
-                                }
-                                remoteUsers.Add(entry.Key, newUser);
-                            }
-                            if (memberVal.ContainsKey("position"))
-                            {
-                                Dictionary<string, object> posDict = (Dictionary<string, object>) memberVal["position"];
-                                Position pos = new Position();
-                                pos.FromDictionary(posDict);
-
-
-                                remoteUsers[entry.Key].UpdatePosition(pos);
-                            }
-                        }
-                        else
-                        {
-                            //Player is not active on the server
-
-                            if (remoteUsers.ContainsKey(entry.Key))
-                            {
-                                //Delete the remoteuser gameobject
-                                Destroy(remoteUsers[entry.Key]);
-                                remoteUsers.Remove(entry.Key);
-                            }
-                        }
-                    }
+            else
+            {
+                if (remoteUsers.ContainsKey(key))
+                {
+                    
+                    var remoteUser = remoteUsers[key];
+                    UserDatabase.Positions.Child(key).ValueChanged -= remoteUser.UpdatePosition;
+                    remoteUsers.Remove(key);
+                    Destroy(remoteUser.gameObject);
                 }
-
             }
         }
 
         void OnApplicationPause(bool pauseStatus)
         {
-            AuthManager.Instance.CurrentUser.OnApplicationPause(pauseStatus);
+            // Debug.Log("Game has paused: "+ pauseStatus);
+
+            UserDatabase.UpdatePropertyData(UserDatabase.LoggedIn, AuthManager.Instance.CurrentUser.UserId, !pauseStatus);
+            
         }
 
         void OnDestroy()
         {
             OnApplicationPause(true);
+            remoteUsers.Clear();
+            remoteUsers = null;
         }
-
-        public void PushPositionUpdates(User user, Position serverPosition) {
-            
-        }
-
-        void Test(object sender, ValueChangedEventArgs args) {
-            if (args.DatabaseError != null) {
-                Debug.LogError(args.DatabaseError.Message);
-                return;
-            }
-            #if UNITY_EDITOR
-            if (EditorApplication.isPlaying == false)
-            {
-                return;
-            }
-            #endif
-            Dictionary<string, object> posDict = args.Snapshot.Value as Dictionary<string, object>;
-            Debug.Log(posDict["lat"].ToString());
-        }
-        
 
     }
 }

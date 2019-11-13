@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Firebase.Database;
 
 
 namespace Assets.Scripts.Models {
     public class RemoteUser : MonoBehaviour
     {
         public Text DisplayNameText;
+        string text;
+        bool changed = false;
 
         private IEnumerator LerpToPosition(Vector3 position, float time)
         {
@@ -22,14 +25,31 @@ namespace Assets.Scripts.Models {
             }
         }
 
-        public void Initialize(string displayname)
+        void Update()
         {
-            DisplayNameText.text = displayname;
+            if (changed)
+            {
+                DisplayNameText.text = text;
+                changed = false;
+            }
         }
 
-        public void UpdatePosition(Position newPos)
+        public void SetDisplayName(string displayname)
         {
-            StartCoroutine(LerpToPosition( newPos.Coordinates.convertCoordinateToVector(transform.position.y), 0.5f));
+            changed = true;
+            text = displayname;
+        }
+
+        public void UpdatePosition(object sender, ValueChangedEventArgs args )
+        {
+            if (args.DatabaseError != null)
+            {
+                Debug.LogWarning(args.DatabaseError.ToString());
+                return;
+            }
+            var pos = new Position();
+            pos.FromDictionary(args.Snapshot.Value as Dictionary<string, object>);
+            StartCoroutine(LerpToPosition( pos.Coordinates.convertCoordinateToVector(transform.position.y), 0.5f));
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Assets.Scripts.Firebase {
         public FirebaseDatabase RealtimeDatabaseInstance => FirebaseDatabase.DefaultInstance;
 
         private RealtimeDatabaseManager() {
-            FirebaseApp.DefaultInstance.SetEditorDatabaseUrl("https://pogo-firebase.firebaseio.com/");
+            FirebaseApp.DefaultInstance.SetEditorDatabaseUrl("https://pogo-65145.firebaseio.com/");
         }
 
        
