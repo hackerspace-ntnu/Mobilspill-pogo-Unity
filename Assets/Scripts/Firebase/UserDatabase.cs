@@ -67,7 +67,7 @@ namespace Assets.Scripts.Firebase
 
         public static Task UpdatePropertyData(DatabaseReference databaseReference, string userId, object value)
         {
-            Debug.Log("Updating property:" + databaseReference.ToString());
+            //Debug.Log("Updating property:" + databaseReference.ToString());
             var dict = new Dictionary<string, System.Object>();
             dict[userId] = value;
             return databaseReference.UpdateChildrenAsync(dict).ContinueWith(t=> {
