@@ -49,7 +49,13 @@ namespace Assets.Scripts.Models {
             }
             var pos = new Position();
             pos.FromDictionary(args.Snapshot.Value as Dictionary<string, object>);
+            UpdatePosition(pos);
+        }
+
+        public void UpdatePosition(Position pos )
+        {
             StartCoroutine(LerpToPosition( pos.Coordinates.convertCoordinateToVector(transform.position.y), 0.5f));
         }
+
     }
 }

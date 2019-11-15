@@ -39,8 +39,8 @@ namespace Assets.Scripts.Firebase {
             remoteUsers = new Dictionary<string, RemoteUser>();
 
             goMap.locationManager.onLocationChanged.AddListener(coords => {OnLocationChanged(coords);});
-            //UserDatabase.Positions.ValueChanged += HandlePositionChanged;
-            UserDatabase.LoggedIn.ChildChanged += HandleChildChanged;
+            UserDatabase.Positions.ChildChanged += HandlePositionChanged;
+            UserDatabase.LoggedIn.ChildChanged += HandleLoggedInChanged;
 
             CurrentUserId = AuthManager.Instance.CurrentUser.UserId;
 
@@ -73,8 +73,6 @@ namespace Assets.Scripts.Firebase {
             {
                 UpdateRemoteUserList( entry.Key, (bool)entry.Value);
             }
-
-
         }
 
         private void OnLocationChanged(Coordinates newPos) {
@@ -89,7 +87,7 @@ namespace Assets.Scripts.Firebase {
         }
 
 
-        private void HandleChildChanged(object sender, ChildChangedEventArgs args) {
+        private void HandleLoggedInChanged(object sender, ChildChangedEventArgs args) {
             if (args.DatabaseError != null) {
                 Debug.LogError(args.DatabaseError.Message);
                 return;
@@ -115,7 +113,7 @@ namespace Assets.Scripts.Firebase {
                 RemoteUser newUser = Instantiate(RemoteUserPrefab);
                 UserDatabase.RetrievePropertyData(UserDatabase.Usernames, key).ContinueWith(t => newUser.SetDisplayName((string)t.Result));
                 remoteUsers.Add(key, newUser);
-                UserDatabase.Positions.Child(key).ValueChanged += remoteUsers[key].UpdatePosition;
+                //UserDatabase.Positions.Child(key).ValueChanged += remoteUsers[key].UpdatePosition;
             }
             else
             {
@@ -123,10 +121,29 @@ namespace Assets.Scripts.Firebase {
                 {
                     
                     var remoteUser = remoteUsers[key];
-                    UserDatabase.Positions.Child(key).ValueChanged -= remoteUser.UpdatePosition;
+                    //UserDatabase.Positions.Child(key).ValueChanged -= remoteUser.UpdatePosition;
                     remoteUsers.Remove(key);
                     Destroy(remoteUser.gameObject);
                 }
+            }
+        }
+
+        private void HandlePositionChanged (object sender, ChildChangedEventArgs args)
+        {
+            if (args.DatabaseError != null) {
+                Debug.LogError(args.DatabaseError.Message);
+                return;
+            }
+
+            var key = (string) args.Snapshot.Key;
+
+            if (remoteUsers.ContainsKey(key))
+            {
+                var value = args.Snapshot.Value as Dictionary<string, object>;
+                var pos = new Position();
+                pos.FromDictionary(value);
+
+                remoteUsers[key].UpdatePosition(pos);
             }
         }
 
@@ -141,8 +158,10 @@ namespace Assets.Scripts.Firebase {
         void OnDestroy()
         {
             OnApplicationPause(true);
+
+            UserDatabase.Positions.ChildChanged -= HandlePositionChanged;
+            UserDatabase.LoggedIn.ChildChanged -= HandleLoggedInChanged;
             remoteUsers.Clear();
-            remoteUsers = null;
         }
 
     }
