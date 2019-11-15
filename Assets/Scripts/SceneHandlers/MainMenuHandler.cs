@@ -35,6 +35,11 @@ public class MainMenuHandler : MonoBehaviour {
             //waiting for AuthManager async initiation to complete
             while (!initAuthTask.IsCompleted) yield return null;
 
+            if (initAuthTask.IsFaulted)
+            {
+                Debug.LogWarning(initAuthTask.Exception);
+            }
+
            
             if (AuthManager.Instance.Auth.CurrentUser == null) {
                 Debug.Log("Loading new scene");

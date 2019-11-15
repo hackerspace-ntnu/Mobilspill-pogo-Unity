@@ -28,9 +28,9 @@ namespace Assets.Scripts.SceneHandlers {
             });
 
             _registerButton.GetComponent<Button>().onClick.AddListener(() => {
-                AuthManager.Instance.RegisterWithEmail(
+                StartCoroutine(AuthManager.Instance.RegisterWithEmail(
                     _emailInput.GetComponent<InputField>().text,
-                    _passwordInput.GetComponent<InputField>().text);
+                    _passwordInput.GetComponent<InputField>().text));
             });
         }
     }

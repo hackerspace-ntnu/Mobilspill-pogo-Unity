@@ -88,6 +88,13 @@ namespace Assets.Scripts.Firebase {
 
 
         private void HandleLoggedInChanged(object sender, ChildChangedEventArgs args) {
+            #if UNITY_EDITOR
+            if (EditorApplication.isPlaying == false)
+            {
+                return;
+            }
+            #endif
+            
             if (args.DatabaseError != null) {
                 Debug.LogError(args.DatabaseError.Message);
                 return;

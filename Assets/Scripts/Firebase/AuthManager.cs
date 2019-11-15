@@ -60,51 +60,51 @@ public class AuthManager {
         });
     }
 
-    public void RegisterWithEmail(string email, string password) {
-        Auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWith(t => {
-            if (t.IsCanceled) {
-                Debug.LogError("[AuthManager] Create    UserWithEmailAndPasswordAsync was canceled.");
-                return;
+    public IEnumerator RegisterWithEmail(string email, string password) {
+        var t1 = Auth.CreateUserWithEmailAndPasswordAsync(email, password);
+        
+        while (t1.IsCompleted == false)
+        {
+            yield return null;
+        }
+        if (t1.IsCanceled) {
+            Debug.LogError("[AuthManager] Create UserWithEmailAndPasswordAsync was canceled.");
+            yield break;
+        }
+        if (t1.IsFaulted) {
+            Debug.LogError("[AuthManager] CreateUserWithEmailAndPasswordAsync encountered an error: " + t1.Exception);
+            yield break;
+        }
+        Firebase.Auth.FirebaseUser newUser = t1.Result;
+        Debug.LogFormat("[AuthManager] Firebase user created successfully: {0} ({1})", newUser.DisplayName, newUser.UserId);
+
+        
+        if (Auth.CurrentUser != null) {
+            //creating user in DB with username (currently just start of email)
+            CurrentUser = new UserData{
+                UserId = Auth.CurrentUser.UserId,
+                Username = email.Split('@')[0],
+                Score = 0
+            };
+
+
+            Debug.Log("Current userId: " + Auth.CurrentUser.UserId);
+
+            var t2 = UserDatabase.AddUser(CurrentUser);
+
+            while (t2.IsCompleted == false)
+            {
+                yield return null;
             }
-            if (t.IsFaulted) {
-                Debug.LogError("[AuthManager] CreateUserWithEmailAndPasswordAsync encountered an error: " + t.Exception);
-                return;
+            if (t2.IsFaulted) {
+                Debug.LogWarning("[AuthManager] Add user to database encountered an error: " + t2.Exception);
+                yield break;
             }
-            Firebase.Auth.FirebaseUser newUser = t.Result;
-            Debug.LogFormat("[AuthManager] Firebase user created successfully: {0} ({1})", newUser.DisplayName, newUser.UserId);
-
-            
-            if (Auth.CurrentUser != null) {
-
-                
-
-                //creating user in DB with username (currently just start of email)
-                CurrentUser = new UserData{
-                    UserId = Auth.CurrentUser.UserId,
-                    Username = email.Split('@')[0],
-                    Score = 0
-                };
 
 
-                Debug.Log("Current userId: " + Auth.CurrentUser.UserId);
-
-                UserDatabase.AddUser(CurrentUser).ContinueWith(t2 => {
-
-                    if (t2.IsCanceled) {
-                        Debug.LogError("[AuthManager] AddUserToDb was canceled.");
-                        return;
-                    }
-                    if (t2.IsFaulted) {
-                        Debug.LogError("[AuthManager] AddUserToDb encountered an error: " + t2.Exception.ToString());
-                        return;
-                    }
-                    Debug.Log("Loading scene Main menu");
-                    //everything worked -> we can redirect to main menu. 
-                    SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
-                });
-
-            }
-        });
+            Debug.Log("Loading scene Main menu");
+            SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
+        }
     }
 
 
