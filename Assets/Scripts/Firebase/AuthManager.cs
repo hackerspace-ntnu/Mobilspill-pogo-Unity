@@ -116,7 +116,7 @@ public class AuthManager {
         }
         
         if (task.IsCanceled) {
-            Debug.LogError("SignInWithEmailAndPasswordAsync was canceled.");
+            Debug.LogError("SignInWithEmailAndPasswordAsync was cancelled.");
             yield break;
         }
         if (task.IsFaulted) {
@@ -133,7 +133,13 @@ public class AuthManager {
         {
             yield return null;
         }
-        CurrentUser = task2.Result;
+        if (task2.IsFaulted)
+        {
+            Debug.LogWarning(task2.Exception);
+        }
+        else{
+            CurrentUser = task2.Result;
+        }
 
         Debug.Log("Loading main menu scene");
         SceneManager.LoadScene("Assets/Scenes/Main menu.unity");

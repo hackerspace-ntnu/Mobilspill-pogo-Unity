@@ -8,6 +8,6 @@ public class CanvasOrienter : MonoBehaviour
 
     void Update()
     {
-        transform.rotation = Quaternion.LookRotation(Camera.main.transform.position - transform.position,Vector3.up);
+        transform.rotation = Quaternion.LookRotation(transform.position - Camera.main.transform.position,Vector3.up);
     }
 }
