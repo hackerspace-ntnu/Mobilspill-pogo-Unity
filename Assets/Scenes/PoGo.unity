@@ -325,6 +325,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd9d906a5b472d14d9086cfb06994ea0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hackpointPrefab: {fileID: 8802073262241044267, guid: a0d7c2e696bfd3f42bc22bfb96b7a952,
+    type: 3}
 --- !u!4 &109602916
 Transform:
   m_ObjectHideFlags: 0
