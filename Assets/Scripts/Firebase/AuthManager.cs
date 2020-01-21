@@ -36,7 +36,6 @@ public class AuthManager {
     private FirebaseApp _app;
     public Firebase.Auth.FirebaseAuth Auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
 
-
     public Task GetAndInitAuthManagerTask() {
         return Task.Run(async() =>
         {
@@ -63,18 +62,8 @@ public class AuthManager {
     public IEnumerator RegisterWithEmail(string email, string password) {
         var t1 = Auth.CreateUserWithEmailAndPasswordAsync(email, password);
         
-        while (t1.IsCompleted == false)
-        {
-            yield return null;
-        }
-        if (t1.IsCanceled) {
-            Debug.LogError("[AuthManager] Create UserWithEmailAndPasswordAsync was canceled.");
-            yield break;
-        }
-        if (t1.IsFaulted) {
-            Debug.LogError("[AuthManager] CreateUserWithEmailAndPasswordAsync encountered an error: " + t1.Exception);
-            yield break;
-        }
+        yield return UtilityFunctions.RunTaskAsCoroutine(t1);
+        
         Firebase.Auth.FirebaseUser newUser = t1.Result;
         Debug.LogFormat("[AuthManager] Firebase user created successfully: {0} ({1})", newUser.DisplayName, newUser.UserId);
 
@@ -91,15 +80,7 @@ public class AuthManager {
             Debug.Log("Current userId: " + Auth.CurrentUser.UserId);
 
             var t2 = UserDatabase.AddUser(CurrentUser);
-
-            while (t2.IsCompleted == false)
-            {
-                yield return null;
-            }
-            if (t2.IsFaulted) {
-                Debug.LogWarning("[AuthManager] Add user to database encountered an error: " + t2.Exception);
-                yield break;
-            }
+            yield return UtilityFunctions.RunTaskAsCoroutine(t2);
 
 
             Debug.Log("Loading scene Main menu");
@@ -110,36 +91,18 @@ public class AuthManager {
 
     public IEnumerator LoginWithEmail(string email, string password) {
         var task = Auth.SignInWithEmailAndPasswordAsync(email, password);
-        while (!task.IsCompleted)
-        {
-            yield return null;
-        }
-        
-        if (task.IsCanceled) {
-            Debug.LogError("SignInWithEmailAndPasswordAsync was cancelled.");
-            yield break;
-        }
-        if (task.IsFaulted) {
-            Debug.LogError("SignInWithEmailAndPasswordAsync encountered an error: " + task.Exception);
-            yield break;
-        }
-
+        yield return UtilityFunctions.RunTaskAsCoroutine(task);
         var newUser = task.Result;
+
+
         Debug.LogFormat("[AuthManager] User signed in successfully: {0} ({1})",
             newUser.DisplayName, newUser.UserId);
 
+
         var task2 = UserDatabase.RetrieveUserData(Auth.CurrentUser.UserId);
-        while (!task2.IsCompleted)
-        {
-            yield return null;
-        }
-        if (task2.IsFaulted)
-        {
-            Debug.LogWarning(task2.Exception);
-        }
-        else{
-            CurrentUser = task2.Result;
-        }
+        yield return UtilityFunctions.RunTaskAsCoroutine(task2);
+        CurrentUser = task2.Result;
+        
 
         Debug.Log("Loading main menu scene");
         SceneManager.LoadScene("Assets/Scenes/Main menu.unity");

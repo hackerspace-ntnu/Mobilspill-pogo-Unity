@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Firebase.Database;
+using Newtonsoft.Json;
 
 
 namespace Assets.Scripts.Models {
@@ -47,8 +48,7 @@ namespace Assets.Scripts.Models {
                 Debug.LogWarning(args.DatabaseError.ToString());
                 return;
             }
-            var pos = new Position();
-            pos.FromDictionary(args.Snapshot.Value as Dictionary<string, object>);
+            var pos = JsonConvert.DeserializeObject<Position> (args.Snapshot.GetRawJsonValue());
             UpdatePosition(pos);
         }
 

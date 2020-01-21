@@ -53,10 +53,11 @@ namespace Assets.Scripts.Firebase {
             OnApplicationPause(false);
 
             UserDatabase.RetrievePropertyData(UserDatabase.Positions, CurrentUserId).ContinueWith( task => {
-
-                var positionData = task.Result as Dictionary<string,object>;
-                CurrentUserPosition.FromDictionary( positionData);
-                CurrentUserPreviousPosition.FromDictionary( positionData);
+                string json = task.Result.GetRawJsonValue();
+                Debug.Log("Retrieved position: " + json);
+                var positionData = JsonConvert.DeserializeObject<Position>(json);
+                CurrentUserPosition = positionData;
+                CurrentUserPreviousPosition = positionData;
             });
 
 
@@ -79,10 +80,10 @@ namespace Assets.Scripts.Firebase {
             CurrentUserPosition.Coordinates = newPos;
             
             //If more than (i believe) approx. 10 meter difference: update and push to server.
-            if (CurrentUserPreviousPosition.IsEmpty || CurrentUserPreviousPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 0.00001) {
+            if (CurrentUserPreviousPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 0.00001) {
                 CurrentUserPreviousPosition.Coordinates = newPos;
 
-                UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserId, CurrentUserPosition.ToDictionary());
+                UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserId, CurrentUserPosition);
             }
         }
 
@@ -118,7 +119,7 @@ namespace Assets.Scripts.Firebase {
             if (value == true)
             {
                 RemoteUser newUser = Instantiate(RemoteUserPrefab);
-                UserDatabase.RetrievePropertyData(UserDatabase.Usernames, key).ContinueWith(t => newUser.SetDisplayName((string)t.Result));
+                UserDatabase.RetrievePropertyData(UserDatabase.Usernames, key).ContinueWith(t => newUser.SetDisplayName((string)t.Result.Value));
                 remoteUsers.Add(key, newUser);
                 //UserDatabase.Positions.Child(key).ValueChanged += remoteUsers[key].UpdatePosition;
             }
@@ -146,9 +147,8 @@ namespace Assets.Scripts.Firebase {
 
             if (remoteUsers.ContainsKey(key))
             {
-                var value = args.Snapshot.Value as Dictionary<string, object>;
-                var pos = new Position();
-                pos.FromDictionary(value);
+                var value = args.Snapshot.GetRawJsonValue();
+                var pos = JsonConvert.DeserializeObject<Position>(value);
 
                 remoteUsers[key].UpdatePosition(pos);
             }

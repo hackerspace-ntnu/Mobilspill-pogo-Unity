@@ -32,13 +32,8 @@ public class MainMenuHandler : MonoBehaviour {
 
         if (!AuthManager.Instance.IsInitialized) {
             Task initAuthTask = AuthManager.Instance.GetAndInitAuthManagerTask();
-            //waiting for AuthManager async initiation to complete
-            while (!initAuthTask.IsCompleted) yield return null;
-
-            if (initAuthTask.IsFaulted)
-            {
-                Debug.LogWarning(initAuthTask.Exception);
-            }
+            
+            yield return UtilityFunctions.RunTaskAsCoroutine(initAuthTask);
 
            
             if (AuthManager.Instance.Auth.CurrentUser == null) {

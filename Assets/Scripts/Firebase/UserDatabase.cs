@@ -26,7 +26,7 @@ namespace Assets.Scripts.Firebase
     
         public static async Task<UserData> RetrieveUserData(string userId)
         {
-            var username = (string)await RetrievePropertyData(Usernames, userId);
+            var username = (string)(await RetrievePropertyData(Usernames, userId)).Value;
             //var score = (int) await RetrievePropertyData(Score, userId);
             
             return new UserData{ Username = username , UserId = userId, Score = 0};
@@ -42,12 +42,12 @@ namespace Assets.Scripts.Firebase
         {
             var t1 = UpdatePropertyData(Usernames, userData.UserId, userData.Username);
             var t2 = UpdatePropertyData(Score, userData.UserId, userData.Score);
-            var t3 = UpdatePropertyData(Positions, userData.UserId, new Position(0,0,0).ToDictionary());
+            var t3 = UpdatePropertyData(Positions, userData.UserId, new Position(0,0,0));
             var t4 = UpdatePropertyData(LoggedIn, userData.UserId, false);
             return Task.WhenAll(t1,t2, t3, t4);
         }
 
-        public static Task<object> RetrievePropertyData(DatabaseReference databaseReference, string userId)
+        public static Task<DataSnapshot> RetrievePropertyData(DatabaseReference databaseReference, string userId)
         {
             return databaseReference.Child(userId).GetValueAsync().ContinueWith(
                         t => {
@@ -57,8 +57,7 @@ namespace Assets.Scripts.Firebase
                             }
                             else if (t.IsCompleted)
                             {
-                                var snapshot = t.Result;
-                                return snapshot.Value;
+                                return t.Result;
                             }
                             return null;
                         }
@@ -68,9 +67,13 @@ namespace Assets.Scripts.Firebase
         public static Task UpdatePropertyData(DatabaseReference databaseReference, string userId, object value)
         {
             //Debug.Log("Updating property:" + databaseReference.ToString());
-            var dict = new Dictionary<string, System.Object>();
-            dict[userId] = value;
-            return databaseReference.UpdateChildrenAsync(dict).ContinueWith(t=> {
+            //var dict = new Dictionary<string, System.Object>();
+            //dict[userId] = value;
+
+            string jsonValue = JsonConvert.SerializeObject(value);
+            Debug.Log("Updating: " +jsonValue);
+
+            return databaseReference.Child(userId).SetRawJsonValueAsync(jsonValue).ContinueWith(t=> {
                             if (t.IsFaulted)
                             {
                                 Debug.LogFormat("[UserDatabase] Failed updating property data {0} for user {1}: {2}", databaseReference.Key, userId,  t.Exception);
