@@ -54,7 +54,7 @@ namespace Assets.Scripts.Firebase
             {
                 Debug.Log(hackpoint.Key);
                 var pos = hackpoint.Value.Position.Coordinates.convertCoordinateToVector(10);
-                Instantiate(hackpointPrefab, pos, Quaternion.Euler(-90,0,0));
+                Instantiate(hackpointPrefab, pos, Quaternion.identity);
             }
         }
     }

@@ -15,14 +15,24 @@ public class MyLog : MonoBehaviour
     bool shouldUpdateText = true;
     Text text;
 
-    void OnEnable () {
+    private static GameObject Instance;
+
+
+    void Start () {
         InstantiateText();
+
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = gameObject;
         DontDestroyOnLoad(transform.parent.gameObject);
         //Application.logMessageReceived += HandleLog;
         Application.logMessageReceivedThreaded += HandleLog;
     }
     
-    void OnDisable () {
+    void OnDestroy () {
         //Application.logMessageReceived -= HandleLog;
         Application.logMessageReceivedThreaded -= HandleLog;
     }

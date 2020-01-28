@@ -168,7 +168,9 @@ namespace Assets.Scripts.Firebase {
 
             UserDatabase.Positions.ChildChanged -= HandlePositionChanged;
             UserDatabase.LoggedIn.ChildChanged -= HandleLoggedInChanged;
-            remoteUsers.Clear();
+
+            if (remoteUsers != null)
+                remoteUsers.Clear();
         }
 
     }
