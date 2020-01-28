@@ -32,8 +32,8 @@ public class MainMenuHandler : MonoBehaviour {
 
         if (!AuthManager.Instance.IsInitialized) {
             Task initAuthTask = AuthManager.Instance.GetAndInitAuthManagerTask();
-            //waiting for AuthManager async initiation to complete
-            while (!initAuthTask.IsCompleted) yield return null;
+            
+            yield return UtilityFunctions.RunTaskAsCoroutine(initAuthTask);
 
            
             if (AuthManager.Instance.Auth.CurrentUser == null) {
@@ -43,9 +43,10 @@ public class MainMenuHandler : MonoBehaviour {
 
                 if (AuthManager.Instance.FirebaseActive && AuthManager.Instance.Auth.CurrentUser != null) {
                     if (!string.IsNullOrEmpty(AuthManager.Instance.Auth.CurrentUser.UserId)) {
-                        if (AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
+                        FinishSetup();
+                        /*if (AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
                             FinishSetup();
-                        } /*else {
+                        } else {
                             Debug.Log("Getting user..........");                        
                             AuthManager.Instance.GetUserWithAuthId();
                     }   */
@@ -67,13 +68,13 @@ public class MainMenuHandler : MonoBehaviour {
             // Setting up button listeners.
             _startButton.GetComponent<Button>().onClick.AddListener(StartGame);
             _logOutButton.GetComponent<Button>().onClick.AddListener(() => { AuthManager.Instance.LogOut(); });
-
+            FinishSetup();
         }
     }
 
     public void FinishSetup() {
         _properlyLoggedIn = true;
-        SetText(_startButton, $"Start Game as {AuthManager.Instance.CurrentUser.DisplayName}");
+        SetText(_startButton, $"Start Game as {AuthManager.Instance.CurrentUser.Username}");
         
         // Loading bar currently not needed - disabling for now.
         _loadingBar.SetActive(false);
@@ -99,13 +100,13 @@ public class MainMenuHandler : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update() {
-        // If not yet properly logged in (User data not yet retrieved by AuthManager),
-        // check if user data retrieved properly every frame and if so, finish setup.
-        if (!_properlyLoggedIn && AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
-            FinishSetup();
-        }
-    }
+    // void Update() {
+    //     // If not yet properly logged in (User data not yet retrieved by AuthManager),
+    //     // check if user data retrieved properly every frame and if so, finish setup.
+    //     if (!_properlyLoggedIn && AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
+    //         FinishSetup();
+    //     }
+    // }
 
     public void SetText(GameObject button, string newText) {
         button.GetComponentInChildren<Text>().text = newText;

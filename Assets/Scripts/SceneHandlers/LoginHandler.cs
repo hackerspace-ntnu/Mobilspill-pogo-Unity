@@ -22,26 +22,16 @@ namespace Assets.Scripts.SceneHandlers {
 
             _loginButton.GetComponent<Button>().onClick.AddListener(() =>
             {
-                AuthManager.Instance.LoginWithEmail(
+                StartCoroutine(AuthManager.Instance.LoginWithEmail(
                     _emailInput.GetComponent<InputField>().text,
-                    _passwordInput.GetComponent<InputField>().text);
+                    _passwordInput.GetComponent<InputField>().text));
             });
 
             _registerButton.GetComponent<Button>().onClick.AddListener(() => {
-                AuthManager.Instance.RegisterWithEmail(
+                StartCoroutine(AuthManager.Instance.RegisterWithEmail(
                     _emailInput.GetComponent<InputField>().text,
-                    _passwordInput.GetComponent<InputField>().text);
+                    _passwordInput.GetComponent<InputField>().text));
             });
-        }
-
-        // Update is called once per frame.
-        void Update() {
-            // If properly logged in (User data retrieved by AuthManager),
-            // Player should be redirected to main menu.
-            // This must stay here because SceneManager.LoadScene doesn't work properly from within Continue in tasks.
-            if (AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
-                SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
-            }
         }
     }
 }
