@@ -16,12 +16,14 @@ namespace Assets.Scripts.Firebase
     {
         public GameObject hackpointPrefab;
         private static DatabaseReference database = RealtimeDatabaseManager.Instance.DBReference;
-        private static DatabaseReference hackpoints = database.Child("hackpoints");
+        private static DatabaseReference hackpointReference = database.Child("hackpoints");
+
+        //private static Dictionary<string,HackpointData> hackpoints;
 
 
         private static Task<HackpointData> RetrieveHackpointData(string ID)
         {
-            return hackpoints.Child(ID).GetValueAsync().LogErrorOrContinueWith(
+            return hackpointReference.Child(ID).GetValueAsync().ContinueWith(
                     t => {
                         string json = t.Result.GetRawJsonValue();
                         //Debug.Log("Retrieved: "+json);
@@ -34,7 +36,7 @@ namespace Assets.Scripts.Firebase
 
         private static Task<Dictionary<string, HackpointData>> RetrieveAllHackpoints()
         {
-            return hackpoints.GetValueAsync().LogErrorOrContinueWith(
+            return hackpointReference.GetValueAsync().ContinueWith(
                     t => {
                         string json = t.Result.GetRawJsonValue();
                         //Debug.Log("Retrieved: "+json);
@@ -55,7 +57,16 @@ namespace Assets.Scripts.Firebase
                 Debug.Log(hackpoint.Key);
                 var pos = hackpoint.Value.Position.Coordinates.convertCoordinateToVector(10);
                 Instantiate(hackpointPrefab, pos, Quaternion.identity);
+                yield return UtilityFunctions.RunTaskAsCoroutine( UploadHighscoreAtHackpoint(100,hackpoint.Key) );
             }
+        }
+
+        public static async Task UploadHighscoreAtHackpoint(int highscore, string hackpointID)
+        {
+            var reference = hackpointReference.Child(hackpointID).Child(HackpointData.PlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
+            //var previousHighscore = (int)(await reference.GetValueAsync()).Value;
+            await reference.SetValueAsync(highscore);
+
         }
     }
 }

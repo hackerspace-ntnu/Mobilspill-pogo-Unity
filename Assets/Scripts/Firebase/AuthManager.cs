@@ -29,7 +29,7 @@ public class AuthManager {
     private bool _firebaseActive = false;
     public bool FirebaseActive => _firebaseActive;
 
-    public UserData CurrentUser {get; private set;}
+    public string CurrentUserID => Instance.Auth.CurrentUser.UserId;
 
     private RealtimeDatabaseManager _rDBManager;
 
@@ -46,11 +46,6 @@ public class AuthManager {
                 _firebaseActive = true;
                 // Setting auth as initialized.
                 _isInitialized = true;
-
-                if (Auth.CurrentUser != null) {
-                    CurrentUser = await UserDatabase.RetrieveUserData(Auth.CurrentUser.UserId);
-                    Debug.Log("[AuthManager] Retrieved user data.");
-                }
             } else {
                 Debug.LogError(string.Format(
                     "[AuthManager]Could not resolve all Firebase dependencies: {0}", dependencyStatus));
@@ -59,50 +54,52 @@ public class AuthManager {
         });
     }
 
-    public IEnumerator RegisterWithEmail(string email, string password) {
+    public IEnumerator RegisterWithEmail(string email, string password, Text errorMessageField) {
         var t1 = Auth.CreateUserWithEmailAndPasswordAsync(email, password);
         
         yield return UtilityFunctions.RunTaskAsCoroutine(t1);
+        if (t1.IsFaulted)
+        {
+            errorMessageField.text = t1.Exception.InnerException.InnerException.Message;
+            yield break;
+        }
         
-        Firebase.Auth.FirebaseUser newUser = t1.Result;
+        var newUser = t1.Result;
         Debug.LogFormat("[AuthManager] Firebase user created successfully: {0} ({1})", newUser.DisplayName, newUser.UserId);
 
         
         if (Auth.CurrentUser != null) {
             //creating user in DB with username (currently just start of email)
-            CurrentUser = new UserData{
-                UserId = Auth.CurrentUser.UserId,
-                Username = email.Split('@')[0],
-                Score = 0
-            };
+            Debug.Log("Current userId: " + CurrentUserID);
 
-
-            Debug.Log("Current userId: " + Auth.CurrentUser.UserId);
-
-            var t2 = UserDatabase.AddUser(CurrentUser);
-            yield return UtilityFunctions.RunTaskAsCoroutine(t2);
-
+            yield return UtilityFunctions.RunTaskAsCoroutine(UploadInitialUserData(email.Split('@')[0]));
 
             Debug.Log("Loading scene Main menu");
             SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
         }
     }
+    private async Task UploadInitialUserData(string username)
+    {
+        await UserDatabase.UpdatePropertyData(UserDatabase.Usernames, CurrentUserID, username);
+        await UserDatabase.UpdatePropertyData(UserDatabase.Score, CurrentUserID, 0);
+        await UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserID, new Position(0,0,0));
+        await UserDatabase.UpdatePropertyData(UserDatabase.LoggedIn, CurrentUserID, false);
+
+    }
 
 
-    public IEnumerator LoginWithEmail(string email, string password) {
+    public IEnumerator LoginWithEmail(string email, string password, Text errorMessageField) {
         var task = Auth.SignInWithEmailAndPasswordAsync(email, password);
         yield return UtilityFunctions.RunTaskAsCoroutine(task);
+
+        if (task.IsFaulted)
+        {
+            errorMessageField.text = task.Exception.InnerException.InnerException.Message;
+            yield break;
+        }
         var newUser = task.Result;
-
-
         Debug.LogFormat("[AuthManager] User signed in successfully: {0} ({1})",
             newUser.DisplayName, newUser.UserId);
-
-
-        var task2 = UserDatabase.RetrieveUserData(Auth.CurrentUser.UserId);
-        yield return UtilityFunctions.RunTaskAsCoroutine(task2);
-        CurrentUser = task2.Result;
-        
 
         Debug.Log("Loading main menu scene");
         SceneManager.LoadScene("Assets/Scenes/Main menu.unity");

@@ -23,52 +23,21 @@ public static class UtilityFunctions
         yield return task;
     }
 
-    public static Task LogErrorOrContinueWith(this Task task, Action<Task> continuationFunction)
+    public static void RunTaskAndLogErrors(Task task)
     {
-        return task.ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                Debug.LogWarningFormat("Task error: {0}", t.Exception);
-            }
-            else if (t.IsCanceled)
-            {
-                Debug.LogWarningFormat("Task cancelled: {0}", t.Exception);
-            }
-            else {
-                continuationFunction.Invoke(t);
-            }
-        });
-    }
-    public static Task<TResult> LogErrorOrContinueWith<TResult>(this Task task, Func<Task, TResult> continuationFunction)
-    {
-        return task.ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                Debug.LogWarningFormat("Task error: {0}", t.Exception);
-            }
-            else if (t.IsCanceled)
-            {
-                Debug.LogWarningFormat("Task cancelled: {0}", t.Exception);
-            }
-            return continuationFunction.Invoke(t);
-        });
-    }
+        Task.Run(() => task.ContinueWith(
+            t => {
+                if (t.IsFaulted)
+                {
+                    Debug.LogWarningFormat("Task was faulted: {0}", t.Exception);
+                }
 
-    public static Task<TNewResult> LogErrorOrContinueWith<TResult,TNewResult>(this Task<TResult> task,Func<Task<TResult>, TNewResult> continuationFunction)
-    {
-        return task.ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                Debug.LogWarningFormat("Task error: {0}", t.Exception);
+                if (t.IsCanceled)
+                {
+                    Debug.LogWarningFormat("Task was cancelled: {0}", t.Exception);
+                }
             }
-            else if (t.IsCanceled)
-            {
-                Debug.LogWarningFormat("Task cancelled: {0}", t.Exception);
-            }
-            return continuationFunction.Invoke(t);
-        });
+        ));
+
     }
 }

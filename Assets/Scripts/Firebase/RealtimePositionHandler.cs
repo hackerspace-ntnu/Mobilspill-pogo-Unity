@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Assets.Scripts.Firebase {
 
@@ -42,7 +43,7 @@ namespace Assets.Scripts.Firebase {
             UserDatabase.Positions.ChildChanged += HandlePositionChanged;
             UserDatabase.LoggedIn.ChildChanged += HandleLoggedInChanged;
 
-            CurrentUserId = AuthManager.Instance.CurrentUser.UserId;
+            CurrentUserId = AuthManager.Instance.CurrentUserID;
 
             if (string.IsNullOrEmpty(CurrentUserId))
             
@@ -52,25 +53,22 @@ namespace Assets.Scripts.Firebase {
             }
             OnApplicationPause(false);
 
-            UserDatabase.RetrievePropertyData(UserDatabase.Positions, CurrentUserId).ContinueWith( task => {
-                string json = task.Result.GetRawJsonValue();
-                Debug.Log("Retrieved position: " + json);
-                var positionData = JsonConvert.DeserializeObject<Position>(json);
-                CurrentUserPosition = positionData;
-                CurrentUserPreviousPosition = positionData;
-            });
+            yield return UtilityFunctions.RunTaskAsCoroutine(InitializeData());
+        }
+
+        private async Task InitializeData()
+        {
+            var snapshot = await UserDatabase.RetrievePropertyData(UserDatabase.Positions, CurrentUserId);
+            
+            string json = snapshot.GetRawJsonValue();
+            var positionData = JsonConvert.DeserializeObject<Position>(json);
+            CurrentUserPosition = positionData;
+            CurrentUserPreviousPosition = positionData;
 
 
-            var userTask = UserDatabase.LoggedIn.OrderByValue().EqualTo(true).GetValueAsync();
-            while (userTask.IsCompleted == false) {
-                yield return null;
-            }
-            if (userTask.IsFaulted)
-            {
-                Debug.LogError(userTask.Exception);
-            }
+            var loggedInPlayers = await UserDatabase.LoggedIn.OrderByValue().EqualTo(true).GetValueAsync();
 
-            foreach (var entry in userTask.Result.Value as Dictionary<string, object>)
+            foreach (var entry in loggedInPlayers.Value as Dictionary<string, object>)
             {
                 UpdateRemoteUserList( entry.Key, (bool)entry.Value);
             }
@@ -83,7 +81,7 @@ namespace Assets.Scripts.Firebase {
             if (CurrentUserPreviousPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 0.00001) {
                 CurrentUserPreviousPosition.Coordinates = newPos;
 
-                UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserId, CurrentUserPosition);
+                UtilityFunctions.RunTaskAndLogErrors(UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserId, CurrentUserPosition));
             }
         }
 
@@ -111,7 +109,7 @@ namespace Assets.Scripts.Firebase {
 
         private void UpdateRemoteUserList(string key, bool value)
         {
-            if (key == AuthManager.Instance.CurrentUser.UserId)
+            if (key == AuthManager.Instance.CurrentUserID)
                 return;
 
             Debug.Log(key + " " + value);
@@ -157,9 +155,7 @@ namespace Assets.Scripts.Firebase {
         void OnApplicationPause(bool pauseStatus)
         {
             // Debug.Log("Game has paused: "+ pauseStatus);
-
-            UserDatabase.UpdatePropertyData(UserDatabase.LoggedIn, AuthManager.Instance.CurrentUser.UserId, !pauseStatus);
-            
+            UtilityFunctions.RunTaskAndLogErrors(UserDatabase.UpdatePropertyData(UserDatabase.LoggedIn, AuthManager.Instance.CurrentUserID, !pauseStatus));
         }
 
         void OnDestroy()
