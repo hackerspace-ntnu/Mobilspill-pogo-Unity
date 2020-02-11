@@ -96,6 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 0
 --- !u!196 &5
@@ -457,9 +458,9 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: Some option
+    - m_Text: Leaderboards
       m_Image: {fileID: 0}
-    - m_Text: Some option 2
+    - m_Text: My stats
       m_Image: {fileID: 0}
     - m_Text: Main menu
       m_Image: {fileID: 0}
@@ -758,7 +759,6 @@ GameObject:
   m_Component:
   - component: {fileID: 217769299}
   - component: {fileID: 217769298}
-  - component: {fileID: 217769297}
   - component: {fileID: 217769296}
   - component: {fileID: 217769295}
   - component: {fileID: 217769300}
@@ -779,14 +779,6 @@ AudioListener:
   m_GameObject: {fileID: 217769294}
   m_Enabled: 0
 --- !u!124 &217769296
-Behaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 217769294}
-  m_Enabled: 1
---- !u!92 &217769297
 Behaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -963,8 +955,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 308755774}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 1
+  m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 0.5
   m_Range: 10
@@ -1321,6 +1314,38 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
+      propertyPath: m_RootOrder
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 11458246, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
       propertyPath: tiles.Array.size
       value: 0
@@ -2005,38 +2030,6 @@ PrefabInstance:
       propertyPath: layers.Array.data[2].renderingOptions.Array.data[0].roofMaterial
       value: 
       objectReference: {fileID: 2100000, guid: 7d1b67816c1224fe88eed722006b6d2b, type: 2}
-    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 448472, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
-      propertyPath: m_RootOrder
-      value: 5
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2eb893fe48df34d2f8555a95c4675ac6, type: 3}
 --- !u!1 &675609285
@@ -2156,8 +2149,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 692794656}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 1
+  m_Shape: 0
   m_Color: {r: 0.8514273, g: 0.9117647, b: 0.8518434, a: 1}
   m_Intensity: 0.8
   m_Range: 10
@@ -3232,6 +3226,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
