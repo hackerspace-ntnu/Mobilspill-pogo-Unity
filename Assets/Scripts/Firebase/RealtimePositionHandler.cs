@@ -30,7 +30,7 @@ namespace Assets.Scripts.Firebase {
 
         private string CurrentUserId;
 
-        // Use this for initialization
+
         IEnumerator Start() {
             //Waiting for the location manager to have the world origin set.
             yield return StartCoroutine(goMap.locationManager.WaitForOriginSet());
@@ -81,7 +81,7 @@ namespace Assets.Scripts.Firebase {
             if (CurrentUserPreviousPosition.Coordinates.DistanceFromOtherGPSCoordinate(newPos) > 0.00001) {
                 CurrentUserPreviousPosition.Coordinates = newPos;
 
-                UtilityFunctions.RunTaskAndLogErrors(UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserId, CurrentUserPosition));
+                UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserId, CurrentUserPosition);
             }
         }
 
@@ -112,7 +112,7 @@ namespace Assets.Scripts.Firebase {
             if (key == AuthManager.Instance.CurrentUserID)
                 return;
 
-            Debug.Log(key + " " + value);
+            //Debug.Log(key + " " + value);
 
             if (value == true)
             {
@@ -155,7 +155,7 @@ namespace Assets.Scripts.Firebase {
         void OnApplicationPause(bool pauseStatus)
         {
             // Debug.Log("Game has paused: "+ pauseStatus);
-            UtilityFunctions.RunTaskAndLogErrors(UserDatabase.UpdatePropertyData(UserDatabase.LoggedIn, AuthManager.Instance.CurrentUserID, !pauseStatus));
+            UserDatabase.UpdatePropertyData(UserDatabase.LoggedIn, AuthManager.Instance.CurrentUserID, !pauseStatus);
         }
 
         void OnDestroy()

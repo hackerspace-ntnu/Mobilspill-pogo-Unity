@@ -43,14 +43,10 @@ namespace Assets.Scripts.Firebase
         {
             database = RealtimeDatabaseManager.Instance.DBReference;
             hackpointReference = database.Child("hackpoints");
-
-            // var task = RetrieveAllHackpoints();
-            // yield return UtilityFunctions.RunTaskAsCoroutine(task);
-
             var hackpointData = await RetrieveAllHackpoints();
             
             hackpointColliders = new Dictionary<string, Collider>();
-            Debug.Log(hackpointData.Count);
+
             foreach(var hackpoint in hackpointData)
             {
                 var pos = hackpoint.Value.Position.Coordinates.convertCoordinateToVector(10);

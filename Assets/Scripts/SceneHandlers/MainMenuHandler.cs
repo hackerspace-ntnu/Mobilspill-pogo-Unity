@@ -15,7 +15,7 @@ public class MainMenuHandler : MonoBehaviour {
     //properly logged in means we have both the db user values and the auth
     private bool _properlyLoggedIn = false;
     // Start is called before the first frame update.
-    private void Start() {
+    private async void Start() {
         Debug.Log("[MainMenuHandler] Starting main menu");
 
         _startButton = GameObject.Find("StartGameButton");
@@ -26,13 +26,8 @@ public class MainMenuHandler : MonoBehaviour {
         _startButton.SetActive(false);
         _logOutButton.SetActive(false);
 
-        StartCoroutine(_init());
-    }
-
-    private IEnumerator _init() {
-
         if (!AuthManager.Instance.IsInitialized) {
-            yield return UtilityFunctions.RunTaskAsCoroutine(AuthManager.Instance.GetAndInitAuthManagerTask());
+            await AuthManager.Instance.GetAndInitAuthManagerTask();
 
            
             if (AuthManager.Instance.Auth.CurrentUser == null) {
@@ -42,13 +37,7 @@ public class MainMenuHandler : MonoBehaviour {
 
                 if (AuthManager.Instance.FirebaseActive && AuthManager.Instance.Auth.CurrentUser != null) {
                     if (!string.IsNullOrEmpty(AuthManager.Instance.Auth.CurrentUser.UserId)) {
-                        yield return UtilityFunctions.RunTaskAsCoroutine(FinishSetup());
-                        /*if (AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
-                            FinishSetup();
-                        } else {
-                            Debug.Log("Getting user..........");                        
-                            AuthManager.Instance.GetUserWithAuthId();
-                    }   */
+                        await FinishSetup();
                     }
                 }
 
@@ -67,7 +56,7 @@ public class MainMenuHandler : MonoBehaviour {
             // Setting up button listeners.
             _startButton.GetComponent<Button>().onClick.AddListener(StartGame);
             _logOutButton.GetComponent<Button>().onClick.AddListener(() => { AuthManager.Instance.LogOut(); });
-            yield return UtilityFunctions.RunTaskAsCoroutine(FinishSetup());
+            await FinishSetup();
         }
     }
 

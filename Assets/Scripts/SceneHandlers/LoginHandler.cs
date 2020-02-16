@@ -22,19 +22,19 @@ namespace Assets.Scripts.SceneHandlers {
             Debug.Log("[LoginHandler] Email: " + _emailInput.GetComponent<InputField>().text);
             Debug.Log("[LoginHandler] Pass:  " + _passwordInput.GetComponent<InputField>().text);
 
-            _loginButton.GetComponent<Button>().onClick.AddListener(() =>
+            _loginButton.GetComponent<Button>().onClick.AddListener(async () =>
             {
-                StartCoroutine(AuthManager.Instance.LoginWithEmail(
+                await AuthManager.Instance.LoginWithEmail(
                     _emailInput.GetComponent<InputField>().text,
                     _passwordInput.GetComponent<InputField>().text,
-                    _errorMessageField));
+                    _errorMessageField);
             });
 
-            _registerButton.GetComponent<Button>().onClick.AddListener(() => {
-                StartCoroutine(AuthManager.Instance.RegisterWithEmail(
+            _registerButton.GetComponent<Button>().onClick.AddListener(async() => {
+                await AuthManager.Instance.RegisterWithEmail(
                     _emailInput.GetComponent<InputField>().text,
                     _passwordInput.GetComponent<InputField>().text,
-                    _errorMessageField));
+                    _errorMessageField);
             });
         }
     }

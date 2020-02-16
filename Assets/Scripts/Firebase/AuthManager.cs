@@ -36,35 +36,31 @@ public class AuthManager {
     private FirebaseApp _app;
     public Firebase.Auth.FirebaseAuth Auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
 
-    public Task GetAndInitAuthManagerTask() {
-        return Task.Run(async() =>
-        {
-            // Checking firebase dependencies.
-            var dependencyStatus = await Firebase.FirebaseApp.CheckAndFixDependenciesAsync();
-            if (dependencyStatus == Firebase.DependencyStatus.Available) {
-                // Setting a flag here to indicate whether Firebase is ready to use by the app.
-                _firebaseActive = true;
-                // Setting auth as initialized.
-                _isInitialized = true;
-            } else {
-                Debug.LogError(string.Format(
-                    "[AuthManager]Could not resolve all Firebase dependencies: {0}", dependencyStatus));
-            }
-            Debug.Log("[AuthManager] init task completed");
-        });
+    public async Task GetAndInitAuthManagerTask() {
+        // Checking firebase dependencies.
+        var dependencyStatus = await Firebase.FirebaseApp.CheckAndFixDependenciesAsync();
+        if (dependencyStatus == Firebase.DependencyStatus.Available) {
+            // Setting a flag here to indicate whether Firebase is ready to use by the app.
+            _firebaseActive = true;
+            // Setting auth as initialized.
+            _isInitialized = true;
+        } else {
+            Debug.LogError(string.Format(
+                "[AuthManager]Could not resolve all Firebase dependencies: {0}", dependencyStatus));
+        }
+        Debug.Log("[AuthManager] init task completed");
     }
 
-    public IEnumerator RegisterWithEmail(string email, string password, Text errorMessageField) {
-        var t1 = Auth.CreateUserWithEmailAndPasswordAsync(email, password);
-        
-        yield return UtilityFunctions.RunTaskAsCoroutine(t1);
-        if (t1.IsFaulted)
-        {
-            errorMessageField.text = t1.Exception.InnerException.InnerException.Message;
-            yield break;
+    public async Task RegisterWithEmail(string email, string password, Text errorMessageField) {
+        Firebase.Auth.FirebaseUser newUser;
+        try {
+            newUser = await Auth.CreateUserWithEmailAndPasswordAsync(email, password);
         }
-        
-        var newUser = t1.Result;
+        catch(Exception e)
+        {
+            errorMessageField.text = e.InnerException.Message;
+            return;
+        }
         Debug.LogFormat("[AuthManager] Firebase user created successfully: {0} ({1})", newUser.DisplayName, newUser.UserId);
 
         
@@ -72,32 +68,33 @@ public class AuthManager {
             //creating user in DB with username (currently just start of email)
             Debug.Log("Current userId: " + CurrentUserID);
 
-            yield return UtilityFunctions.RunTaskAsCoroutine(UploadInitialUserData(email.Split('@')[0]));
+            UploadInitialUserData(email.Split('@')[0]);
 
             Debug.Log("Loading scene Main menu");
             SceneManager.LoadScene("Assets/Scenes/Main menu.unity");
         }
     }
-    private async Task UploadInitialUserData(string username)
+    private void UploadInitialUserData(string username)
     {
-        await UserDatabase.UpdatePropertyData(UserDatabase.Usernames, CurrentUserID, username);
-        await UserDatabase.UpdatePropertyData(UserDatabase.Score, CurrentUserID, 0);
-        await UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserID, new Position(0,0,0));
-        await UserDatabase.UpdatePropertyData(UserDatabase.LoggedIn, CurrentUserID, false);
+        UserDatabase.UpdatePropertyData(UserDatabase.Usernames, CurrentUserID, username);
+        UserDatabase.UpdatePropertyData(UserDatabase.Score, CurrentUserID, 0);
+        UserDatabase.UpdatePropertyData(UserDatabase.Positions, CurrentUserID, new Position(0,0,0));
+        UserDatabase.UpdatePropertyData(UserDatabase.LoggedIn, CurrentUserID, false);
 
     }
 
 
-    public IEnumerator LoginWithEmail(string email, string password, Text errorMessageField) {
-        var task = Auth.SignInWithEmailAndPasswordAsync(email, password);
-        yield return UtilityFunctions.RunTaskAsCoroutine(task);
-
-        if (task.IsFaulted)
-        {
-            errorMessageField.text = task.Exception.InnerException.InnerException.Message;
-            yield break;
+    public async Task LoginWithEmail(string email, string password, Text errorMessageField) {
+        Firebase.Auth.FirebaseUser newUser;
+        try {
+            newUser = await  Auth.SignInWithEmailAndPasswordAsync(email, password);
         }
-        var newUser = task.Result;
+        catch(Exception e)
+        {
+            errorMessageField.text = e.InnerException.Message;
+            return;
+        }
+        
         Debug.LogFormat("[AuthManager] User signed in successfully: {0} ({1})",
             newUser.DisplayName, newUser.UserId);
 

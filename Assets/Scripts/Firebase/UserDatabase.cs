@@ -27,10 +27,10 @@ namespace Assets.Scripts.Firebase
             return await databaseReference.Child(userId).GetValueAsync();
         }
 
-        public static async Task UpdatePropertyData(DatabaseReference databaseReference, string userId, object value)
+        public static async void UpdatePropertyData(DatabaseReference databaseReference, string userId, object value)
         {
             string jsonValue = JsonConvert.SerializeObject(value);
-            Debug.Log("Updating: " +jsonValue);
+            // Debug.Log("Updating: " +jsonValue);
 
             await databaseReference.Child(userId).SetRawJsonValueAsync(jsonValue);
             // var modified = new Dictionary<string, System.Object>();
@@ -38,10 +38,10 @@ namespace Assets.Scripts.Firebase
             // Modified.SetValueAsync(modified);
         }
 
-        public static Task RemovePropertyData(DatabaseReference databaseReference, string userId)
+        public static async Task RemovePropertyData(DatabaseReference databaseReference, string userId)
         {
             Debug.Log("Removing property:" + databaseReference.ToString());
-            return databaseReference.Child(userId).RemoveValueAsync();
+            await databaseReference.Child(userId).RemoveValueAsync();
         }
     }
 }
