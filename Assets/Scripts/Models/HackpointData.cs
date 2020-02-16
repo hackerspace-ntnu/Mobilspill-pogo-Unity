@@ -7,8 +7,6 @@ namespace Assets.Scripts.Models {
     [JsonObject]
     public struct HackpointData
     {
-        [JsonIgnore]
-        public string ID;
         public Dictionary<int,int> TeamScores;
         public Dictionary<string,int> PlayerHighscores;
         public Position Position;

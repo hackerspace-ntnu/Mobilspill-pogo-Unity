@@ -327,6 +327,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hackpointPrefab: {fileID: 2971522861636133652, guid: d720e14c7ffc0ab468c6f1f6c445dacb,
     type: 3}
+  MinigameSceneNames:
+  - TestMinigame
 --- !u!4 &109602916
 Transform:
   m_ObjectHideFlags: 0

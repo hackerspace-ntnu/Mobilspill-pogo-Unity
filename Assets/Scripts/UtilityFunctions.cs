@@ -40,4 +40,9 @@ public static class UtilityFunctions
         ));
 
     }
+
+    public static bool OnClickDown()
+    {
+        return (Application.isMobilePlatform && Input.touchCount == 1 && Input.GetTouch (0).phase == TouchPhase.Began) || Input.GetMouseButtonDown(0);
+    }
 }

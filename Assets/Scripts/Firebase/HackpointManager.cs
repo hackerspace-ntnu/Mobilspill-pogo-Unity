@@ -15,58 +15,83 @@ namespace Assets.Scripts.Firebase
     public class HackpointManager : MonoBehaviour
     {
         public GameObject hackpointPrefab;
-        private static DatabaseReference database = RealtimeDatabaseManager.Instance.DBReference;
-        private static DatabaseReference hackpointReference = database.Child("hackpoints");
+        
+        public string[] MinigameSceneNames;
 
-        //private static Dictionary<string,HackpointData> hackpoints;
+        private static DatabaseReference database;
+        private static DatabaseReference hackpointReference;
+
+        private static Dictionary<string,Collider> hackpointColliders;
 
 
-        private static Task<HackpointData> RetrieveHackpointData(string ID)
+        private static async Task<HackpointData> RetrieveHackpointData(string ID)
         {
-            return hackpointReference.Child(ID).GetValueAsync().ContinueWith(
-                    t => {
-                        string json = t.Result.GetRawJsonValue();
-                        //Debug.Log("Retrieved: "+json);
-                        var data = JsonConvert.DeserializeObject<HackpointData>(json);
-                        data.ID = ID;
-                        return data;
-                    }
-                );
+            var t = await hackpointReference.Child(ID).GetValueAsync();
+            string json = t.GetRawJsonValue();
+            var data = JsonConvert.DeserializeObject<HackpointData>(json);
+            return data;
         }
 
-        private static Task<Dictionary<string, HackpointData>> RetrieveAllHackpoints()
+        private static async Task<Dictionary<string, HackpointData>> RetrieveAllHackpoints()
         {
-            return hackpointReference.GetValueAsync().ContinueWith(
-                    t => {
-                        string json = t.Result.GetRawJsonValue();
-                        //Debug.Log("Retrieved: "+json);
-                        return JsonConvert.DeserializeObject<Dictionary<string, HackpointData>>(json);
-                    }
-                );
+            var t = await hackpointReference.GetValueAsync();
+            string json = t.GetRawJsonValue();
+            return JsonConvert.DeserializeObject<Dictionary<string, HackpointData>>(json);
         }
 
-        IEnumerator Start()
+        async void Start()
         {
-            var task = RetrieveAllHackpoints();
-            yield return UtilityFunctions.RunTaskAsCoroutine(task);
+            database = RealtimeDatabaseManager.Instance.DBReference;
+            hackpointReference = database.Child("hackpoints");
 
-            var hackpoints = task.Result;
+            // var task = RetrieveAllHackpoints();
+            // yield return UtilityFunctions.RunTaskAsCoroutine(task);
 
-            foreach(var hackpoint in hackpoints)
+            var hackpointData = await RetrieveAllHackpoints();
+            
+            hackpointColliders = new Dictionary<string, Collider>();
+            Debug.Log(hackpointData.Count);
+            foreach(var hackpoint in hackpointData)
             {
-                Debug.Log(hackpoint.Key);
                 var pos = hackpoint.Value.Position.Coordinates.convertCoordinateToVector(10);
-                Instantiate(hackpointPrefab, pos, Quaternion.identity);
-                yield return UtilityFunctions.RunTaskAsCoroutine( UploadHighscoreAtHackpoint(100,hackpoint.Key) );
+                var instance = Instantiate(hackpointPrefab, pos, Quaternion.identity);
+                
+                hackpointColliders.Add(hackpoint.Key, instance.GetComponentInChildren<Collider>());
+                
             }
+        }
+
+        void Update()
+        {
+            if (UtilityFunctions.OnClickDown()) {
+
+                foreach (var hackpoint in hackpointColliders)
+                {
+                    RaycastHit hit;
+                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+                    if (hackpoint.Value.Raycast (ray, out hit, Mathf.Infinity) && MinigameSceneNames.Length > 0) {
+
+                        var input = new MinigameScene.Params();
+
+                        input.sceneName = MinigameSceneNames[0];
+
+                        MinigameScene.LoadMinigameScene(input, 
+                            async (outcome) => {
+                                await UploadHighscoreAtHackpoint(outcome.highscore, hackpoint.Key);
+                            });
+                    }
+                }
+            }
+
         }
 
         public static async Task UploadHighscoreAtHackpoint(int highscore, string hackpointID)
         {
             var reference = hackpointReference.Child(hackpointID).Child(HackpointData.PlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
-            //var previousHighscore = (int)(await reference.GetValueAsync()).Value;
-            await reference.SetValueAsync(highscore);
-
+            var previousHighscore = JsonConvert.DeserializeObject<int>((await reference.GetValueAsync()).GetRawJsonValue());
+            if (highscore >= previousHighscore)
+                await reference.SetValueAsync(highscore);
         }
     }
 }
