@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PoGo.unity
     guid: ccb2fc32566be3648bdb8b0c56312cb1
+  - enabled: 1
+    path: Assets/Scenes/TestMinigame.unity
+    guid: ca37fb44c6ea9894e9cc0b9cd69c477c
   m_configObjects: {}

@@ -1,4 +1,5 @@
 
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Assets.Scripts.Models {
@@ -6,11 +7,12 @@ namespace Assets.Scripts.Models {
     [JsonObject]
     public struct HackpointData
     {
-        [JsonIgnore]
-        public string ID;
-        public int Highscore;
-        public string HighscoringTeam;
+        public Dictionary<int,int> TeamScores;
+        public Dictionary<string,int> PlayerHighscores;
         public Position Position;
-        //public string[] UsersAtHackpoint;
+
+        public static string TeamScoresRef = "TeamScores";
+        public static string PlayerHighscoresRef = "PlayerHighscores";
+        public static string PositionRef = "Position";
     }
 }

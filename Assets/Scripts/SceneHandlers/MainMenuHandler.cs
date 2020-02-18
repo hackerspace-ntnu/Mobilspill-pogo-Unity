@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Assets.Scripts.Firebase;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -14,7 +15,7 @@ public class MainMenuHandler : MonoBehaviour {
     //properly logged in means we have both the db user values and the auth
     private bool _properlyLoggedIn = false;
     // Start is called before the first frame update.
-    private void Start() {
+    private async void Start() {
         Debug.Log("[MainMenuHandler] Starting main menu");
 
         _startButton = GameObject.Find("StartGameButton");
@@ -25,15 +26,8 @@ public class MainMenuHandler : MonoBehaviour {
         _startButton.SetActive(false);
         _logOutButton.SetActive(false);
 
-        StartCoroutine(_init());
-    }
-
-    private IEnumerator _init() {
-
         if (!AuthManager.Instance.IsInitialized) {
-            Task initAuthTask = AuthManager.Instance.GetAndInitAuthManagerTask();
-            
-            yield return UtilityFunctions.RunTaskAsCoroutine(initAuthTask);
+            await AuthManager.Instance.GetAndInitAuthManagerTask();
 
            
             if (AuthManager.Instance.Auth.CurrentUser == null) {
@@ -43,13 +37,7 @@ public class MainMenuHandler : MonoBehaviour {
 
                 if (AuthManager.Instance.FirebaseActive && AuthManager.Instance.Auth.CurrentUser != null) {
                     if (!string.IsNullOrEmpty(AuthManager.Instance.Auth.CurrentUser.UserId)) {
-                        FinishSetup();
-                        /*if (AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
-                            FinishSetup();
-                        } else {
-                            Debug.Log("Getting user..........");                        
-                            AuthManager.Instance.GetUserWithAuthId();
-                    }   */
+                        await FinishSetup();
                     }
                 }
 
@@ -68,13 +56,17 @@ public class MainMenuHandler : MonoBehaviour {
             // Setting up button listeners.
             _startButton.GetComponent<Button>().onClick.AddListener(StartGame);
             _logOutButton.GetComponent<Button>().onClick.AddListener(() => { AuthManager.Instance.LogOut(); });
-            FinishSetup();
+            await FinishSetup();
         }
     }
 
-    public void FinishSetup() {
+    public async Task FinishSetup() {
         _properlyLoggedIn = true;
-        SetText(_startButton, $"Start Game as {AuthManager.Instance.CurrentUser.Username}");
+
+        var snapshot = await UserDatabase.RetrievePropertyData(UserDatabase.Usernames, AuthManager.Instance.CurrentUserID);
+
+
+        SetText(_startButton, $"Start Game as {snapshot.Value.ToString()}");
         
         // Loading bar currently not needed - disabling for now.
         _loadingBar.SetActive(false);
@@ -98,15 +90,6 @@ public class MainMenuHandler : MonoBehaviour {
             SceneManager.LoadScene("Assets/Scenes/LoginScene.unity");
         }
     }
-
-    // Update is called once per frame
-    // void Update() {
-    //     // If not yet properly logged in (User data not yet retrieved by AuthManager),
-    //     // check if user data retrieved properly every frame and if so, finish setup.
-    //     if (!_properlyLoggedIn && AuthManager.Instance.CurrentUser != null && AuthManager.Instance.CurrentUser.HasProperValues) {
-    //         FinishSetup();
-    //     }
-    // }
 
     public void SetText(GameObject button, string newText) {
         button.GetComponentInChildren<Text>().text = newText;
