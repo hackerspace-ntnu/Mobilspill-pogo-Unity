@@ -89,8 +89,8 @@ public class Engine : MonoBehaviour
                 Match2.GetComponent<ButtonScript>().setMatch(Match1);
                 Match1.GetComponent<ButtonScript>().setMatchNumber(MatchNum);
                 Match2.GetComponent<ButtonScript>().setMatchNumber(MatchNum);
-                Match1.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("MatchTwo/Textures/Cards/" + MatchNum.ToString());
-                Match2.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("MatchTwo/Textures/Cards/" + MatchNum.ToString());
+                Match1.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("Minigames/MatchTwo/" + MatchNum.ToString());
+                Match2.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("Minigames/MatchTwo/" + MatchNum.ToString());
 
                 MatchNum += 1;
             }
