@@ -330,6 +330,7 @@ MonoBehaviour:
     type: 3}
   MinigameSceneNames:
   - TestMinigame
+  - MatchTwo
 --- !u!4 &109602916
 Transform:
   m_ObjectHideFlags: 0

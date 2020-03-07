@@ -31,12 +31,15 @@ public class Engine : MonoBehaviour
     private List<Color32> BoardColors = new List<Color32>();
 
     private int Fails;
+    private Vector2 Direction;
 
     // Start is called before the first frame update
     void Start()
     {
         EndScreen.SetActive(false);
         Initiate.GetComponent<Button>().onClick.AddListener(InitiateOnClick);
+
+        Direction = new Vector2(-1, -1);
     }
 
     void InitiateOnClick()
@@ -357,13 +360,13 @@ public class Engine : MonoBehaviour
     {
         int Score = 0;
 
-        if(Fails >= 25)
+        if(Fails >= 15)
         {
             Score = 10;
         }
-        else if(Fails >= 5) // (5): 90,  (24): 14
+        else if(Fails >= 5) // (5): 90,  (14): 18
         {
-            Score = 110 - (Fails * 4);
+            Score = 135 - (Fails * 8);
         }
         else // (0): 100, (4): 92
         {

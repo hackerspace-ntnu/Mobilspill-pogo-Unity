@@ -70,7 +70,7 @@ namespace Assets.Scripts.Firebase
 
                         var input = new MinigameScene.Params();
 
-                        input.sceneName = MinigameSceneNames[0];
+                        input.sceneName = MinigameSceneNames[UnityEngine.Random.Range(0, MinigameSceneNames.Length)];
 
                         MinigameScene.LoadMinigameScene(input, 
                             async (outcome) => {
