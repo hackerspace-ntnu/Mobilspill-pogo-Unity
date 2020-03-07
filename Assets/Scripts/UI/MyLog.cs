@@ -63,7 +63,7 @@ public class MyLog : MonoBehaviour
     {
         if (shouldUpdateText)
         {
-            if (stringBuilder.Length > 10000)
+            if (stringBuilder.Length > 1000)
             {
                 InstantiateText();
             }
