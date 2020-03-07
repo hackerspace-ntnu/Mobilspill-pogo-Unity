@@ -87,9 +87,14 @@ namespace Assets.Scripts.Firebase
         public static async Task UploadHighscoreAtHackpoint(int highscore, string hackpointID)
         {
             var reference = hackpointReference.Child(hackpointID).Child(HackpointData.PlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
-            var previousHighscore = JsonConvert.DeserializeObject<int>((await reference.GetValueAsync()).GetRawJsonValue());
-            if (highscore >= previousHighscore)
-                await reference.SetValueAsync(highscore);
+            var snapshot = await reference.GetValueAsync();
+            if (snapshot.Value != null)
+            {
+                var previousHighscore = JsonConvert.DeserializeObject<int>(snapshot.GetRawJsonValue());
+                if (highscore < previousHighscore)
+                    return;
+            }
+            await reference.SetValueAsync(highscore);
         }
     }
 }
