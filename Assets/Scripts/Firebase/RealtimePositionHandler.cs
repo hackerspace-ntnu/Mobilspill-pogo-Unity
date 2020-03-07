@@ -98,6 +98,10 @@ namespace Assets.Scripts.Firebase {
                 Debug.LogError(args.DatabaseError.Message);
                 return;
             }
+            if (gameObject.activeInHierarchy == false)
+            {
+                return;
+            }
             //Debug.Log(args.Snapshot.Key + " " + args.Snapshot.Value);
 
 
@@ -136,6 +140,10 @@ namespace Assets.Scripts.Firebase {
 
         private void HandlePositionChanged (object sender, ChildChangedEventArgs args)
         {
+            if (gameObject.activeInHierarchy == false)
+            {
+                return;
+            }
             if (args.DatabaseError != null) {
                 Debug.LogError(args.DatabaseError.Message);
                 return;

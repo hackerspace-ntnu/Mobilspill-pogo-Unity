@@ -9,6 +9,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Firebase 
 {
@@ -71,6 +72,7 @@ namespace Assets.Scripts.Firebase
                         var input = new MinigameScene.Params();
 
                         input.sceneName = MinigameSceneNames[UnityEngine.Random.Range(0, MinigameSceneNames.Length)];
+                        
 
                         MinigameScene.LoadMinigameScene(input, 
                             async (outcome) => {

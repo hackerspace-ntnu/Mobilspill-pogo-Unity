@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Assets.Scripts;
 
 public class Engine : MonoBehaviour
 {
@@ -36,6 +37,8 @@ public class Engine : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        
+        EndScreen.GetComponentInChildren<Button>().onClick.AddListener(ReturnFromMinigame);
         EndScreen.SetActive(false);
         Initiate.GetComponent<Button>().onClick.AddListener(InitiateOnClick);
 
@@ -351,12 +354,17 @@ public class Engine : MonoBehaviour
             }
 
             EndScreen.SetActive(true);
-            EndScreen.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = getScore().ToString();
+            EndScreen.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = GetScore().ToString();
             EndScreen.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Fails: " + Fails.ToString();
         }
     }
 
-    public int getScore()
+    private void ReturnFromMinigame()
+    {
+        GetComponent<MinigameScene>().EndScene(new MinigameScene.Outcome() { highscore = GetScore() });
+    }
+
+    public int GetScore()
     {
         int Score = 0;
 
