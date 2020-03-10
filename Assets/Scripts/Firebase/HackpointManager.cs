@@ -60,7 +60,7 @@ namespace Assets.Scripts.Firebase
 
         void Update()
         {
-            if (UtilityFunctions.OnClickDown()) {
+            if (UtilityFunctions.OnClickDown() && hackpointColliders != null) {
 
                 foreach (var hackpoint in hackpointColliders)
                 {

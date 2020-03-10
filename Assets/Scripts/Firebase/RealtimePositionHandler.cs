@@ -121,9 +121,8 @@ namespace Assets.Scripts.Firebase {
             if (value == true)
             {
                 RemoteUser newUser = Instantiate(RemoteUserPrefab);
-                UserDatabase.RetrievePropertyData(UserDatabase.Usernames, key).ContinueWith(t => newUser.SetDisplayName((string)t.Result.Value));
-                remoteUsers.Add(key, newUser);
-                //UserDatabase.Positions.Child(key).ValueChanged += remoteUsers[key].UpdatePosition;
+                remoteUsers.Add(key, newUser); 
+                InitializeRemoteUser(key, newUser);
             }
             else
             {
@@ -131,11 +130,20 @@ namespace Assets.Scripts.Firebase {
                 {
                     
                     var remoteUser = remoteUsers[key];
-                    //UserDatabase.Positions.Child(key).ValueChanged -= remoteUser.UpdatePosition;
                     remoteUsers.Remove(key);
                     Destroy(remoteUser.gameObject);
                 }
             }
+        }
+
+        private async void InitializeRemoteUser(string key, RemoteUser remoteUser)
+        {
+            var positionSnapshot = await UserDatabase.RetrievePropertyData(UserDatabase.Positions, key);
+            var usernameSnapshot = await UserDatabase.RetrievePropertyData(UserDatabase.Usernames, key);
+
+            var pos = JsonConvert.DeserializeObject<Position>(positionSnapshot.GetRawJsonValue());
+
+            remoteUser.InitializeData((string)usernameSnapshot.Value, pos);
         }
 
         private void HandlePositionChanged (object sender, ChildChangedEventArgs args)
@@ -150,13 +158,14 @@ namespace Assets.Scripts.Firebase {
             }
 
             var key = (string) args.Snapshot.Key;
+            //Debug.LogFormat("Position has changed: {0}, {1}",key, args.Snapshot.GetRawJsonValue());
 
             if (remoteUsers.ContainsKey(key))
             {
                 var value = args.Snapshot.GetRawJsonValue();
                 var pos = JsonConvert.DeserializeObject<Position>(value);
 
-                remoteUsers[key].UpdatePosition(pos);
+                remoteUsers[key].UpdatePosition(pos, 0.5f);
             }
         }
 
@@ -168,15 +177,16 @@ namespace Assets.Scripts.Firebase {
 
         void OnDestroy()
         {
-
             UserDatabase.Positions.ChildChanged -= HandlePositionChanged;
             UserDatabase.LoggedIn.ChildChanged -= HandleLoggedInChanged;
             
+            if (remoteUsers != null)
+            {
+                remoteUsers.Clear();
+            }
             //Very important that OnApplicationPause is called after unsubscribing to the LoggedIn event. Otherwise crash! -Thomas Thrane 10.03.2020
             OnApplicationPause(true);
 
-            if (remoteUsers != null)
-                remoteUsers.Clear();
         }
 
     }
