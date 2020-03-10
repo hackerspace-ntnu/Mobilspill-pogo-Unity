@@ -168,10 +168,12 @@ namespace Assets.Scripts.Firebase {
 
         void OnDestroy()
         {
-            OnApplicationPause(true);
 
             UserDatabase.Positions.ChildChanged -= HandlePositionChanged;
             UserDatabase.LoggedIn.ChildChanged -= HandleLoggedInChanged;
+            
+            //Very important that OnApplicationPause is called after unsubscribing to the LoggedIn event. Otherwise crash! -Thomas Thrane 10.03.2020
+            OnApplicationPause(true);
 
             if (remoteUsers != null)
                 remoteUsers.Clear();

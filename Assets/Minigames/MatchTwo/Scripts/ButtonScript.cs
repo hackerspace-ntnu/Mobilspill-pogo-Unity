@@ -49,7 +49,7 @@ public class ButtonScript : MonoBehaviour
         if(Complete == true)
         {
             float Percentage = ((float)Coordinates[0] + (float)Coordinates[1]) / 8f;
-            print(Percentage);
+            //print(Percentage);
             GetComponent<Image>().color = GameObject.Find("Engine").GetComponent<Engine>().ColorCalculator(Percentage, 0, 1, 255);
             transform.GetChild(0).gameObject.SetActive(!Complete);
             GetComponent<Button>().enabled = false;
