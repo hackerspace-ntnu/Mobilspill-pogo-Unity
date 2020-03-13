@@ -25,11 +25,14 @@ namespace Assets.Scripts
                         }
                         callback(outcome);
                     };
-            SceneManager.LoadScene(sceneParams.sceneName, LoadSceneMode.Additive);
-            foreach(var rootObject in rootObjects)
-            {
-                rootObject.SetActive(false);
-            }
+            var loadOp = SceneManager.LoadSceneAsync(sceneParams.sceneName, LoadSceneMode.Additive);
+
+            loadOp.completed += (o) => {
+                foreach(var rootObject in rootObjects)
+                {
+                    rootObject.SetActive(false);
+                }
+            };
         }
 
         public void Awake() 

@@ -241,7 +241,7 @@ public class Engine : MonoBehaviour
             Guess1 = Button;
             Button.GetComponent<ButtonScript>().Reveal(true);
         }
-        else if(Guess2 == null)
+        else if(Guess2 == null && Button != Guess1)
         {
             Guess2 = Button;
             Button.GetComponent<ButtonScript>().Reveal(true);
