@@ -21,7 +21,8 @@ namespace Assets.Scripts
                     { 
                         foreach(var rootObject in rootObjects)
                         {
-                            rootObject.SetActive(true);
+                            if (rootObject != null)
+                                rootObject.SetActive(true);
                         }
                         callback(outcome);
                     };
@@ -30,7 +31,8 @@ namespace Assets.Scripts
             loadOp.completed += (o) => {
                 foreach(var rootObject in rootObjects)
                 {
-                    rootObject.SetActive(false);
+                    if (rootObject != null)
+                        rootObject.SetActive(false);
                 }
             };
         }

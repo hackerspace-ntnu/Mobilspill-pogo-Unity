@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311912, g: 0.3807398, b: 0.3587271, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311912, g: 0.3807398, b: 0.3587272, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -96,6 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -1408,6 +1409,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8100000, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
 --- !u!1 &2059242609
@@ -1500,11 +1505,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 292587956}
     m_Modifications:
-    - target: {fileID: 3847842335196357046, guid: 4af096660dfc08743883720c4281d30b,
-        type: 3}
-      propertyPath: m_Name
-      value: GameHeader
-      objectReference: {fileID: 0}
     - target: {fileID: 50660169485567113, guid: 4af096660dfc08743883720c4281d30b,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1609,6 +1609,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Pivot.y
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3847842335196357046, guid: 4af096660dfc08743883720c4281d30b,
+        type: 3}
+      propertyPath: m_Name
+      value: GameHeader
       objectReference: {fileID: 0}
     - target: {fileID: 7840130777997448071, guid: 4af096660dfc08743883720c4281d30b,
         type: 3}
