@@ -61,10 +61,10 @@ public class MainMenuHandler : MonoBehaviour {
     }
 
     public async Task FinishSetup() {
-        _properlyLoggedIn = true;
 
         var snapshot = await UserDatabase.RetrievePropertyData(UserDatabase.Usernames, AuthManager.Instance.CurrentUserID);
 
+        _properlyLoggedIn = true;
 
         SetText(_startButton, $"Start Game as {snapshot.Value.ToString()}");
         

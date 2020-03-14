@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TestMinigame.unity
     guid: ca37fb44c6ea9894e9cc0b9cd69c477c
+  - enabled: 1
+    path: Assets/Scenes/MatchTwo.unity
+    guid: 89978a73e76dba04ba5652661c014dfb
   m_configObjects: {}

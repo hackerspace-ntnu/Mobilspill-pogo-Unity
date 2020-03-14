@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Firebase.Database;
-using Newtonsoft.Json;
-
 
 namespace Assets.Scripts.Models {
     public class RemoteUser : MonoBehaviour
     {
         public Text DisplayNameText;
-        string text;
-        bool changed = false;
+        private string text;
+        private bool changed = false; 
 
         private IEnumerator LerpToPosition(Vector3 position, float time)
         {
@@ -35,27 +32,15 @@ namespace Assets.Scripts.Models {
             }
         }
 
-        public void SetDisplayName(string displayname)
+        public void InitializeData(string displayname, Position position)
         {
             changed = true;
             text = displayname;
+            transform.position = position.Coordinates.convertCoordinateToVector(transform.position.y);
         }
-
-        public void UpdatePosition(object sender, ValueChangedEventArgs args )
+        public void UpdatePosition(Position pos, float time )
         {
-            if (args.DatabaseError != null)
-            {
-                Debug.LogWarning(args.DatabaseError.ToString());
-                return;
-            }
-            var pos = JsonConvert.DeserializeObject<Position> (args.Snapshot.GetRawJsonValue());
-            UpdatePosition(pos);
+            StartCoroutine(LerpToPosition( pos.Coordinates.convertCoordinateToVector(transform.position.y), time));
         }
-
-        public void UpdatePosition(Position pos )
-        {
-            StartCoroutine(LerpToPosition( pos.Coordinates.convertCoordinateToVector(transform.position.y), 0.5f));
-        }
-
     }
 }

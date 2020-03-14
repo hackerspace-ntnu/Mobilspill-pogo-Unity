@@ -330,6 +330,7 @@ MonoBehaviour:
     type: 3}
   MinigameSceneNames:
   - TestMinigame
+  - MatchTwo
 --- !u!4 &109602916
 Transform:
   m_ObjectHideFlags: 0
@@ -762,7 +763,6 @@ GameObject:
   - component: {fileID: 217769299}
   - component: {fileID: 217769298}
   - component: {fileID: 217769296}
-  - component: {fileID: 217769295}
   - component: {fileID: 217769300}
   - component: {fileID: 217769301}
   m_Layer: 0
@@ -772,14 +772,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &217769295
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 217769294}
-  m_Enabled: 0
 --- !u!124 &217769296
 Behaviour:
   m_ObjectHideFlags: 0

@@ -9,6 +9,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Firebase 
 {
@@ -59,7 +60,7 @@ namespace Assets.Scripts.Firebase
 
         void Update()
         {
-            if (UtilityFunctions.OnClickDown()) {
+            if (UtilityFunctions.OnClickDown() && hackpointColliders != null) {
 
                 foreach (var hackpoint in hackpointColliders)
                 {
@@ -70,7 +71,8 @@ namespace Assets.Scripts.Firebase
 
                         var input = new MinigameScene.Params();
 
-                        input.sceneName = MinigameSceneNames[0];
+                        input.sceneName = MinigameSceneNames[UnityEngine.Random.Range(0, MinigameSceneNames.Length)];
+                        
 
                         MinigameScene.LoadMinigameScene(input, 
                             async (outcome) => {
@@ -85,9 +87,14 @@ namespace Assets.Scripts.Firebase
         public static async Task UploadHighscoreAtHackpoint(int highscore, string hackpointID)
         {
             var reference = hackpointReference.Child(hackpointID).Child(HackpointData.PlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
-            var previousHighscore = JsonConvert.DeserializeObject<int>((await reference.GetValueAsync()).GetRawJsonValue());
-            if (highscore >= previousHighscore)
-                await reference.SetValueAsync(highscore);
+            var snapshot = await reference.GetValueAsync();
+            if (snapshot.Value != null)
+            {
+                var previousHighscore = JsonConvert.DeserializeObject<int>(snapshot.GetRawJsonValue());
+                if (highscore < previousHighscore)
+                    return;
+            }
+            await reference.SetValueAsync(highscore);
         }
     }
 }

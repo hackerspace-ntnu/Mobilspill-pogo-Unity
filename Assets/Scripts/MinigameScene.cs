@@ -15,9 +15,24 @@ namespace Assets.Scripts
 
         public static void LoadMinigameScene(Params sceneParams, System.Action<Outcome> callback) 
         {
+            var rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
             MinigameScene.loadSceneRegister = sceneParams;
-            sceneParams.callback = callback;
-            SceneManager.LoadScene(sceneParams.sceneName, LoadSceneMode.Additive);
+            sceneParams.callback = (outcome) => 
+                    { 
+                        foreach(var rootObject in rootObjects)
+                        {
+                            rootObject.SetActive(true);
+                        }
+                        callback(outcome);
+                    };
+            var loadOp = SceneManager.LoadSceneAsync(sceneParams.sceneName, LoadSceneMode.Additive);
+
+            loadOp.completed += (o) => {
+                foreach(var rootObject in rootObjects)
+                {
+                    rootObject.SetActive(false);
+                }
+            };
         }
 
         public void Awake() 
