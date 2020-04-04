@@ -4,13 +4,11 @@ using System.Collections.Generic;
 using Assets.Scripts.Models;
 using Firebase;
 using Firebase.Database;
-using Firebase.Unity.Editor;
 using UnityEngine;
 using Newtonsoft.Json;
-using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Assets.Scripts.Firebase 
 {
@@ -29,6 +27,8 @@ namespace Assets.Scripts.Firebase
         public Dictionary<string, HackpointData> hackpointData;
 
         private Button startMinigameButton;
+        private TextMeshProUGUI highScoreTextObject;
+        private string formatText;
 
 
         private static async Task<HackpointData> RetrieveHackpointData(string ID)
@@ -65,6 +65,8 @@ namespace Assets.Scripts.Firebase
 
             
             startMinigameButton = HackpointUI.transform.Find("PlayMinigameButton").GetComponent<Button>();
+            highScoreTextObject = HackpointUI.transform.Find("Text").GetComponent<TextMeshProUGUI>();
+            formatText = highScoreTextObject.text;
         }
 
         void Update()
@@ -83,48 +85,71 @@ namespace Assets.Scripts.Firebase
                         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
                         if (hackpointCollider.Value.Raycast (ray, out hit, Mathf.Infinity) && MinigameSceneNames.Length > 0) {
-
-                            var input = new MinigameScene.Params();
-
-                            var index = hackpointData[hackpointCollider.Key].MinigameIndex;
-                            if (index < 0 || index >= MinigameSceneNames.Length)
-                            {
-                                Debug.LogWarning("The minigame index from the database is out of bounds.");
-                            } 
-                            else 
-                            {
-                                input.sceneName = MinigameSceneNames[index];
-                            }
-                            HackpointUI.SetActive(true);
-                            
-
-                            //Lambda magic
-                            startMinigameButton.onClick.AddListener(()=>
-                                    {
-                                        startMinigameButton.onClick.RemoveAllListeners();
-                                        HackpointUI.SetActive(false);
-                                        MinigameScene.LoadMinigameScene(input, 
-                                            async (outcome) => {
-                                                await UploadHighscoreAtHackpoint(outcome.highscore, hackpointCollider.Key);
-                                            });
-                                    });
+                            DisplayHackpointMenu(hackpointCollider.Key);
                         }
                     }
                 }
             }
         }
 
-        public static async Task UploadHighscoreAtHackpoint(int highscore, string hackpointID)
+        public async void DisplayHackpointMenu(string hackpointID)
         {
+            int playerHighscore = await UpdateHackpointMenu(hackpointID);
+            HackpointUI.SetActive(true);
+
+
+            var input = new MinigameScene.Params();
+
+            var index = hackpointData[hackpointID].MinigameIndex;
+            if (index < 0 || index >= MinigameSceneNames.Length)
+            {
+                Debug.LogWarning("The minigame index from the database is out of bounds.");
+                input.sceneName = MinigameSceneNames[0];
+            } 
+            else 
+            {
+                input.sceneName = MinigameSceneNames[index];
+            }
+            //Lambda magic
+            startMinigameButton.onClick.AddListener(()=>
+                    {
+                        startMinigameButton.onClick.RemoveAllListeners();
+                        MinigameScene.LoadMinigameScene(input, 
+                            async (outcome) => {
+                                //This happens when the minigame scene is finished.
+                                await UploadHighscoreAtHackpoint(playerHighscore, outcome.highscore, hackpointID);
+                                await UpdateHackpointMenu(hackpointID);
+                            });
+                    });
+        }
+
+        public async Task<int> UpdateHackpointMenu(string hackpointID)
+        {
+            var playerHighscore = await RetrievePlayerHighscore(hackpointID);
+            highScoreTextObject.text = String.Format(formatText, 0, 0, playerHighscore);
+
+            return playerHighscore;
+        }
+
+        public static async Task UploadHighscoreAtHackpoint(int previousHighscore, int highscore, string hackpointID)
+        {
+            if (highscore > previousHighscore)
+            {
+                var reference = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointPlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
+                await reference.SetValueAsync(highscore);
+            }
+        }
+
+        public static async Task<int> RetrievePlayerHighscore(string hackpointID)
+        {
+            int value = 0;
             var reference = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointPlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
             var snapshot = await reference.GetValueAsync();
             if (snapshot.Value != null)
             {
-                var previousHighscore = JsonConvert.DeserializeObject<int>(snapshot.GetRawJsonValue());
-                if (highscore < previousHighscore)
-                    return;
+                value = JsonConvert.DeserializeObject<int>(snapshot.GetRawJsonValue());
             }
-            await reference.SetValueAsync(highscore);
+            return value;
         }
     }
 }
