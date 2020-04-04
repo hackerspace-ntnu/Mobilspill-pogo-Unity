@@ -10,12 +10,15 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Assets.Scripts.Firebase 
 {
     public class HackpointManager : MonoBehaviour
     {
         public GameObject hackpointPrefab;
+
+        public GameObject HackpointUI;
         
         public string[] MinigameSceneNames;
 
@@ -23,6 +26,9 @@ namespace Assets.Scripts.Firebase
         private static DatabaseReference hackpointReference;
 
         private static Dictionary<string,Collider> hackpointColliders;
+        public Dictionary<string, HackpointData> hackpointData;
+
+        private Button startMinigameButton;
 
 
         private static async Task<HackpointData> RetrieveHackpointData(string ID)
@@ -43,8 +49,8 @@ namespace Assets.Scripts.Firebase
         async void Start()
         {
             database = RealtimeDatabaseManager.Instance.DBReference;
-            hackpointReference = database.Child("hackpoints");
-            var hackpointData = await RetrieveAllHackpoints();
+            hackpointReference = database.Child(FirebaseRefs.HackpointRef);
+            hackpointData = await RetrieveAllHackpoints();
             
             hackpointColliders = new Dictionary<string, Collider>();
 
@@ -56,37 +62,61 @@ namespace Assets.Scripts.Firebase
                 hackpointColliders.Add(hackpoint.Key, instance.GetComponentInChildren<Collider>());
                 
             }
+
+            
+            startMinigameButton = HackpointUI.transform.Find("PlayMinigameButton").GetComponent<Button>();
         }
 
         void Update()
         {
             if (UtilityFunctions.OnClickDown() && hackpointColliders != null) {
-
-                foreach (var hackpoint in hackpointColliders)
+                if (HackpointUI.activeSelf && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject() == false)
                 {
-                    RaycastHit hit;
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                    HackpointUI.SetActive(false);
+                    startMinigameButton.onClick.RemoveAllListeners();
+                }
+                else
+                {
+                    foreach (var hackpointCollider in hackpointColliders)
+                    {
+                        RaycastHit hit;
+                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-                    if (hackpoint.Value.Raycast (ray, out hit, Mathf.Infinity) && MinigameSceneNames.Length > 0) {
+                        if (hackpointCollider.Value.Raycast (ray, out hit, Mathf.Infinity) && MinigameSceneNames.Length > 0) {
 
-                        var input = new MinigameScene.Params();
+                            var input = new MinigameScene.Params();
 
-                        input.sceneName = MinigameSceneNames[UnityEngine.Random.Range(0, MinigameSceneNames.Length)];
-                        
+                            var index = hackpointData[hackpointCollider.Key].MinigameIndex;
+                            if (index < 0 || index >= MinigameSceneNames.Length)
+                            {
+                                Debug.LogWarning("The minigame index from the database is out of bounds.");
+                            } 
+                            else 
+                            {
+                                input.sceneName = MinigameSceneNames[index];
+                            }
+                            HackpointUI.SetActive(true);
+                            
 
-                        MinigameScene.LoadMinigameScene(input, 
-                            async (outcome) => {
-                                await UploadHighscoreAtHackpoint(outcome.highscore, hackpoint.Key);
-                            });
+                            //Lambda magic
+                            startMinigameButton.onClick.AddListener(()=>
+                                    {
+                                        startMinigameButton.onClick.RemoveAllListeners();
+                                        HackpointUI.SetActive(false);
+                                        MinigameScene.LoadMinigameScene(input, 
+                                            async (outcome) => {
+                                                await UploadHighscoreAtHackpoint(outcome.highscore, hackpointCollider.Key);
+                                            });
+                                    });
+                        }
                     }
                 }
             }
-
         }
 
         public static async Task UploadHighscoreAtHackpoint(int highscore, string hackpointID)
         {
-            var reference = hackpointReference.Child(hackpointID).Child(HackpointData.PlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
+            var reference = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointPlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
             var snapshot = await reference.GetValueAsync();
             if (snapshot.Value != null)
             {
