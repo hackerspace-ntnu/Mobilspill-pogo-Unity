@@ -4,7 +4,7 @@ namespace Assets.Scripts.Firebase
 {
     public class FirebaseRefs
     {
-        public const string HackpointTeamScoresRef = "team_scores";
+        public const string HackpointTeamHighscoresRef = "team_highscores";
         public const string HackpointPlayerHighscoresRef = "player_highscores";
         public const string HackpointPositionRef = "position";
         public const string HackpointMinigameIndexRef = "minigame_index";

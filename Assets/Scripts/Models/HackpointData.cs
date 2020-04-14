@@ -7,10 +7,7 @@ namespace Assets.Scripts.Models {
     
     [JsonObject]
     public struct HackpointData
-    {
-        [JsonProperty(FirebaseRefs.HackpointTeamScoresRef)]
-        public Dictionary<int,int> TeamScores;
-        
+    {        
         [JsonProperty(FirebaseRefs.HackpointPlayerHighscoresRef)]
         public Dictionary<string,int> PlayerHighscores;
 

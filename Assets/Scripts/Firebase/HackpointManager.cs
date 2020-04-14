@@ -79,14 +79,28 @@ namespace Assets.Scripts.Firebase
                 }
                 else
                 {
+                    if (MinigameSceneNames.Length == 0)
+                    {
+                        return;
+                    }
+                    float minDistance = float.MaxValue;
+                    string closestHackpoint = "";
                     foreach (var hackpointCollider in hackpointColliders)
                     {
                         RaycastHit hit;
                         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-                        if (hackpointCollider.Value.Raycast (ray, out hit, Mathf.Infinity) && MinigameSceneNames.Length > 0) {
-                            DisplayHackpointMenu(hackpointCollider.Key);
+                        if (hackpointCollider.Value.Raycast (ray, out hit, Mathf.Infinity)) {
+                            if (hit.distance < minDistance)
+                            {
+                                minDistance = hit.distance;
+                                closestHackpoint = hackpointCollider.Key;
+                            }
                         }
+                    }
+                    if (closestHackpoint != "")
+                    {
+                        DisplayHackpointMenu(closestHackpoint);
                     }
                 }
             }
@@ -118,6 +132,7 @@ namespace Assets.Scripts.Firebase
                             async (outcome) => {
                                 //This happens when the minigame scene is finished.
                                 await UploadHighscoreAtHackpoint(playerHighscore, outcome.highscore, hackpointID);
+                                await Task.Delay(200);
                                 await UpdateHackpointMenu(hackpointID);
                             });
                     });
@@ -125,8 +140,25 @@ namespace Assets.Scripts.Firebase
 
         public async Task<int> UpdateHackpointMenu(string hackpointID)
         {
-            var playerHighscore = await RetrievePlayerHighscore(hackpointID);
-            highScoreTextObject.text = String.Format(formatText, 0, 0, playerHighscore);
+            int playerHighscore = await RetrievePlayerHighscore(hackpointID);
+
+            int team0Highscore = 0;
+            int team1Highscore = 0;
+            var ref0 = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointTeamHighscoresRef).Child("0");
+            var ref1 = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointTeamHighscoresRef).Child("1");
+            var snap0 = await ref0.GetValueAsync();
+            var snap1 = await ref1.GetValueAsync();
+            if (snap0.Value != null)
+            {
+                team0Highscore = JsonConvert.DeserializeObject<int>(snap0.GetRawJsonValue());
+            }
+            if (snap1.Value != null)
+            {
+                team1Highscore = JsonConvert.DeserializeObject<int>(snap1.GetRawJsonValue());
+            }
+
+
+            highScoreTextObject.text = String.Format(formatText, team0Highscore, team1Highscore, playerHighscore);
 
             return playerHighscore;
         }
