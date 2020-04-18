@@ -1,12 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
-//Til neste gang: Sett en restriction på antall piler, så man ikke får uendelig poeng
-//Finn ut hvordan å gi bedre feedback
+
+//Til neste gang: Sett en restriction på antall piler, så man ikke får uendelig score (gjort)
+//Finn ut hvordan å gi bedre feedback 
 //vite når man har failet
-//Hvis to piler er oppå hverandre vil man ikke se når den underste skifter farge. Fiks.
-//Ca. maxgrense på poeng
+//Hvis to piler er oppå hverandre vil man ikke se når den underste skifter farge. Fiks. (gjort)
+//Ca. maxgrense på score
+//Muligens legg til fisk
+//Gjør om til knapper?
+//Gi bedre signal før pilene dukker opp?
+//Lag combometode (gjort)
+//Fjer scoremultiplier når vi viser end screen (gjort)
+//Få arrows til å spawne mellom beat også etterhvert
+//Fikse bug som gjør at man får fail på første arrow
+//Avrunde score som vises på skjermen
+//Kankje balansere scorene litt bedre
+//Skaff musikk
+//Animer tomat
 
 public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjøre Unity-greier med klassen, som f.eks. Deltatime
 {
@@ -17,18 +31,32 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
     private float beatPerSecond; // Bestemmer hvor lenge pilene skal være på skjermen
     private float beatTimer; //Teller fra 0 til 1/beatperSecond
     private float SwipeSpace; // Tidsrom det er akseptabelt å swipe
-    private float poeng;
+    private float score;
     private float pointMultiplier;
     private float randomness; //Går fra 0 til 1 og bestemmer om pil dukker opp senere i spillet
+    private float comboMultiplier;
     private bool newSwipe;
     private int numSpawnedArrows; //Antall arrows som totalt har spawnet i løpet av spillet
+    public GameObject scoreTracker;
+    public GameObject pointMultiplierTracker;
+    public GameObject failText;
+    public GameObject comboText;
+    private int combo;
+    private float baseBeat; //Standard beat som hastighet går ut fra
     //private SwipeDirCheck swipeDirCheck = new SwipeDirCheck();
 
     // Start is called before the first frame update
     void Start()
     {
-        SetBeat(1f); // Setter beatPerSecond
-        pointMultiplier = 1;
+        baseBeat = 1f;
+        //SetBeat(baseBeat); // Setter beatPerSecond
+        SetBeat(baseBeat*9f); // Test
+        pointMultiplier = 100f/695f;
+        numSpawnedArrows = 100;
+        comboMultiplier = 1;
+        combo = 0;
+        newSwipe = true;
+        GameObject.Find("EndScreen").GetComponent<Canvas>().enabled = false;
     }
 
     void SetBeat(float beat)
@@ -41,50 +69,102 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
     void Update()
     {
         time += Time.deltaTime; //Time.deltaTime *2 gjør at timeren gå dobbelt så fort
-
+        combosetter();
         if(Input.GetMouseButtonUp(0))
         {
             newSwipe = true;
         }
+        randomness = score / 100f;
 
         BeatCountdown();
         ArrowCountDown(); 
+        
+       /* else
+        {
+            pointMultiplierTracker.GetComponent<TextMeshProUGUI>().enabled = false;
+            scoreTracker.GetComponent<TextMeshProUGUI>().fontSize = 90;
+            GameObject.Find("EndScreen").GetComponent<Canvas>().enabled = true;
+        }*/
+        
     }
 
     void BeatCountdown() // Lager piler basert på rytme
     {
-        if (time >= 10) //Bestemmer når vi begynner med å ikke-spawne random arrows på beaten
+        /*if () //Bestemmer når vi begynner med å ikke-spawne random arrows på beaten
         {
-            randomness = Random.Range(0, 2);
-            if (beatTimer > 0)
+            randomness 
+            randomness = Random.Range(0f, 2f);
+            if (beatTimer > 0 && numSpawnedArrows != 0)
             {
                 beatTimer -= Time.deltaTime;
             }
-            else if (beatTimer <= 0 && randomness > 0.5)
+            else if (beatTimer <= 0 && randomness > 0.5f && numSpawnedArrows != 0)
             {
                 beatTimer = 1f / beatPerSecond;
-                numSpawnedArrows++;
+                numSpawnedArrows--;
                 MakeArrow();
             }
             else
             {
                 beatTimer = 1f / beatPerSecond;
             }
+        }*/
+
+        if (beatTimer > 0 && numSpawnedArrows != 0)
+        {
+            beatTimer -= Time.deltaTime;
+        }
+        else if (beatTimer <= 0 && numSpawnedArrows != 0)
+        {
+            beatTimer = 1f / beatPerSecond;
+            if(Random.Range(0f,1.5f) >= randomness) //0 til 1,99999(osv.) siden det er float
+            {
+                SetBeat(baseBeat);
+                MakeArrow();
+                numSpawnedArrows--;
+                print("SpawnedArrows: "+numSpawnedArrows);
+            }
+            else
+            {
+                if(Random.Range(0,2) == 0)
+                {
+                    SetBeat(baseBeat*2f);
+                    //beatTimer = (1f / beatPerSecond) / 2f;
+                    //print("AHhhhhhhh!");
+                    //print(beatTimer);
+                    
+                }
+                else
+                {
+                    SetBeat(baseBeat);
+                }
+            } 
+        }
+    }
+
+    void combosetter()
+    {
+        if (combo > 20)
+        {
+            comboMultiplier = 8;
+            pointMultiplierTracker.GetComponent<TextMeshProUGUI>().text = "x8";
+        }
+        else if (combo > 10)
+        {
+            comboMultiplier = 4;
+            pointMultiplierTracker.GetComponent<TextMeshProUGUI>().text = "x4";
+        }
+        else if (combo > 5)
+        {
+            comboMultiplier = 2;
+            pointMultiplierTracker.GetComponent<TextMeshProUGUI>().text = "x2";
+
         }
         else
         {
-            if(beatTimer > 0)
-            {
-                beatTimer -= Time.deltaTime;
-            }
-            else if(beatTimer <= 0)
-            {
-                beatTimer = 1f / beatPerSecond;
-                numSpawnedArrows++;
-                MakeArrow();
-            }
+            comboMultiplier = 1;
+            pointMultiplierTracker.GetComponent<TextMeshProUGUI>().text = "x1";
         }
-        
     }
 
     void ArrowCountDown()//Går inn i hver arrow og trekker fra timer for eksistens
@@ -96,23 +176,51 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
 
             if (arrow.timer < 0 + SwipeSpace) //Sjekker om swiper innenfor akseptabelt tidsrom
             {
-                SwipeChecker(arrow);
+                if (SwipeChecker(arrow) != null)
+                {
+                    deadArrows.Add(arrow);
+                }
 
             }
             if (arrow.timer < -SwipeSpace) //Fjerner piler etter at timer i pilen er gått ut
             {
                 deadArrows.Add(arrow);
+                if (failText.GetComponent<TextMeshProUGUI>().text == "")
+                {
+                    failText.GetComponent<TextMeshProUGUI>().text = "Fail";
+                    GameObject.Find("Main Camera").GetComponent<Camera>().backgroundColor = new Color32(203, 45, 43, 255);
+                    combo = 0;
+                    comboText.GetComponent<TextMeshProUGUI>().text = "Combo: " + combo;
+                }
+                else
+                {
+                    failText.GetComponent<TextMeshProUGUI>().text += "!";
+                }
+                
             }
         }
         foreach (Arrow ded in deadArrows)
         {
             Destroy(ded.getArrowObject());
             arrowList.Remove(ded); //Fjerner pilen fra arrayet for eksistens på skjermen
+            //print(ded.getArrowObject().GetComponent<SpriteRenderer>().sortingOrder);
+            if (ded.getArrowObject().GetComponent<SpriteRenderer>().sortingOrder <= 1)
+            {
+                pointMultiplierTracker.GetComponent<TextMeshProUGUI>().enabled = false;
+                scoreTracker.GetComponent<TextMeshProUGUI>().fontSize = 90;
+                GameObject.Find("EndScreen").GetComponent<Canvas>().enabled = true;
+                GameObject.Find("Main Camera").GetComponent<Camera>().backgroundColor = new Color32(43, 202, 131, 255);
+            }
         }
     }
 
-    void SwipeChecker(Arrow arrow) //Gjør ting innenfor det akeptable tidsrommet å swipe i
+    Arrow SwipeChecker(Arrow arrow) //Gjør ting innenfor det akeptable tidsrommet å swipe i
     {
+        if (arrow.swipable == false && GetComponent<SwipeDirCheck>().getDir() != -1)
+        {
+            combo = 0;
+            comboText.GetComponent<TextMeshProUGUI>().text = "Combo: " + combo;
+        }
         if(arrow.swipable == false)
         {
             arrow.swipable = true; //Arrow blir farget kun en gang
@@ -121,7 +229,7 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
             circlePref.transform.position = arrow.getArrowObject().transform.position;
             arrow.setCircle(circlePref);
         }
-
+        
         if(arrow.timer <= 0 && arrow.getCircle() != null)
         {
             Destroy(arrow.getCircle());
@@ -131,24 +239,33 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
             arrow.getCircle().transform.localScale = new Vector3(((arrow.timer / SwipeSpace) * 2) + 1, ((arrow.timer / SwipeSpace) * 2) + 1, ((arrow.timer / SwipeSpace) * 2) + 1);
         }
 
-        if (GetComponent<SwipeDirCheck>().getDir() == arrow.getDirection() && newSwipe == true)
+        if (GetComponent<SwipeDirCheck>().getDir() == arrow.getDirection() && newSwipe == true && arrow.swipable == true)
         {
-            poeng += (1 - (Mathf.Round((arrow.timer/SwipeSpace) * 20) / 20f)) * pointMultiplier;
-            print(poeng);
+            score += (float)System.Math.Round(1 - Mathf.Round(arrow.timer / SwipeSpace * 20) / 20f * pointMultiplier * comboMultiplier,2); //Nå med kun to desimaler!
+            //print(score);
+
+            scoreTracker.GetComponent<TextMeshProUGUI>().text = "Score: "+ score.ToString("n2");
+            failText.GetComponent<TextMeshProUGUI>().text = "";
+            combo++;
+            comboText.GetComponent<TextMeshProUGUI>().text = "Combo: " + combo;
+            GameObject.Find("Main Camera").GetComponent<Camera>().backgroundColor = new Color32(43, 202, 131, 255);
 
             Destroy(arrow.getArrowObject());
             Destroy(arrow.getCircle());
 
-            arrow.timer = -SwipeSpace-1;
+            //arrow.timer = -SwipeSpace-1;
 
             newSwipe = false;
+            return arrow;
         }
+        return null;
     }
 
     void MakeArrow() //Lager piler
     {
         GameObject newarrowPref = Instantiate(arrowPref); // Lager selve klonepilene
         Arrow newArrow = new Arrow(Random.Range(0, 4), newarrowPref, (1/beatPerSecond) * 4)/*Sekunder du har på deg til å utføre action*/; //Setter opp parametere for piler
+        newArrow.getArrowObject().GetComponent<SpriteRenderer>().sortingOrder = numSpawnedArrows;
         arrowList.Add(newArrow);
 
         newArrow.getArrowObject().GetComponent<Transform>().eulerAngles = new Vector3(0, 0, 90 * newArrow.getDirection()); // Roterer pilene riktig i forhold til retning

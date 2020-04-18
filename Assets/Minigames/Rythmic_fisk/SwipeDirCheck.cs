@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class SwipeDirCheck : MonoBehaviour
 {
-    private float mouseTimeDown;
+    //private float mouseTimeDown;
     private Vector3 firstMousePosition;
     // private Vector3 lastMousePosition;
 
@@ -15,14 +15,15 @@ public class SwipeDirCheck : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            mouseTimeDown = 0;
+            //mouseTimeDown = 0;
             //lastMousePosition = Input.mousePosition;
             firstMousePosition = Input.mousePosition;
+     
         }
 
         if (Input.GetMouseButton(0) || Input.anyKey)
         {
-            mouseTimeDown += Time.deltaTime;
+            //mouseTimeDown += Time.deltaTime;
             //if (Input.mousePosition.x > lastMousePosition.x && Input.mousePosition.x > firstMousePosition.x+100f)
 
             Vector2 vectorSum = Input.mousePosition - firstMousePosition;
@@ -33,22 +34,26 @@ public class SwipeDirCheck : MonoBehaviour
             if (vectorSum.x > Mathf.Abs(vectorSum.y) || Input.GetKey(KeyCode.RightArrow))
             {
                 //transform.position += new Vector3(1, 0, 0) * Time.deltaTime;
+                
                 return 1; //Høyre
             }
 
             else if (Mathf.Abs(vectorSum.x) > Mathf.Abs(vectorSum.y) || Input.GetKey(KeyCode.LeftArrow))
             {
                 //transform.position += new Vector3(-1, 0, 0) * Time.deltaTime;
+             
                 return 3; //Venstre
             }
             else if (vectorSum.y > Mathf.Abs(vectorSum.x) || Input.GetKey(KeyCode.UpArrow))
             {
                 //transform.position += new Vector3(0, 1, 0) * Time.deltaTime;
+           
                 return 2; //Opp
             }
             else if (Mathf.Abs(vectorSum.y) > Mathf.Abs(vectorSum.x) || Input.GetKey(KeyCode.DownArrow))
             {
                 //transform.position += new Vector3(0, -1, 0) * Time.deltaTime;
+               
                 return 0; //Ned
             }
 
