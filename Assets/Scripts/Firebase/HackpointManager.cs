@@ -30,6 +30,22 @@ namespace Assets.Scripts.Firebase
         private TextMeshProUGUI highScoreTextObject;
         private string formatText;
 
+        class MenuState 
+        {
+            public string currentHackpointID;
+            public DatabaseReference TeamHighscoresRef; //We have to save the reference so that we can properly deregister the callback HandleHighscoreChanged. --Thomas T 21/04/2020
+            public int playerHighscore;
+
+            public MenuState(string hackpointID)
+            {
+                currentHackpointID = hackpointID;
+                TeamHighscoresRef = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointTeamHighscoresRef);
+                playerHighscore = 0;
+            }
+        }
+
+        private MenuState openMenuState = null;
+
 
         private static async Task<HackpointData> RetrieveHackpointData(string ID)
         {
@@ -72,10 +88,12 @@ namespace Assets.Scripts.Firebase
         void Update()
         {
             if (UtilityFunctions.OnClickDown() && hackpointColliders != null) {
-                if (HackpointUI.activeSelf && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject() == false)
+                if (openMenuState != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject() == false)
                 {
                     HackpointUI.SetActive(false);
                     startMinigameButton.onClick.RemoveAllListeners();
+                    openMenuState.TeamHighscoresRef.ValueChanged -= HandleHighscoreChanged;
+                    openMenuState = null;
                 }
                 else
                 {
@@ -105,13 +123,29 @@ namespace Assets.Scripts.Firebase
                 }
             }
         }
+    
 
         public async void DisplayHackpointMenu(string hackpointID)
         {
-            int playerHighscore = await UpdateHackpointMenu(hackpointID);
+            openMenuState = new MenuState(hackpointID);
+            openMenuState.playerHighscore = await RetrievePlayerHighscore(hackpointID);
+
+            //Fetch team highscores
+            var snapshot = await openMenuState.TeamHighscoresRef.GetValueAsync();
+            int[] teamHighscores = new int[]{0,0};
+            if (snapshot.Value != null)
+            {
+                teamHighscores = JsonConvert.DeserializeObject<int[]>(snapshot.GetRawJsonValue());
+            }
+            
+
+            highScoreTextObject.text = String.Format(formatText, teamHighscores[0], teamHighscores[1], openMenuState.playerHighscore);
+
+            openMenuState.TeamHighscoresRef.ValueChanged += HandleHighscoreChanged;
+
             HackpointUI.SetActive(true);
 
-
+            
             var input = new MinigameScene.Params();
 
             var index = hackpointData[hackpointID].MinigameIndex;
@@ -127,47 +161,24 @@ namespace Assets.Scripts.Firebase
             //Lambda magic
             startMinigameButton.onClick.AddListener(()=>
                     {
-                        startMinigameButton.onClick.RemoveAllListeners();
-                        MinigameScene.LoadMinigameScene(input, 
-                            async (outcome) => {
-                                //This happens when the minigame scene is finished.
-                                await UploadHighscoreAtHackpoint(playerHighscore, outcome.highscore, hackpointID);
-                                await Task.Delay(200);
-                                await UpdateHackpointMenu(hackpointID);
-                            });
+                        MinigameScene.LoadMinigameScene(input, UploadHighscoreAtHackpoint);
                     });
         }
 
-        public async Task<int> UpdateHackpointMenu(string hackpointID)
+        public async void UploadHighscoreAtHackpoint(MinigameScene.Outcome outcome)
         {
-            int playerHighscore = await RetrievePlayerHighscore(hackpointID);
+            int highscore = outcome.highscore;
 
-            int team0Highscore = 0;
-            int team1Highscore = 0;
-            var ref0 = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointTeamHighscoresRef).Child("0");
-            var ref1 = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointTeamHighscoresRef).Child("1");
-            var snap0 = await ref0.GetValueAsync();
-            var snap1 = await ref1.GetValueAsync();
-            if (snap0.Value != null)
+            if (openMenuState == null)
             {
-                team0Highscore = JsonConvert.DeserializeObject<int>(snap0.GetRawJsonValue());
-            }
-            if (snap1.Value != null)
-            {
-                team1Highscore = JsonConvert.DeserializeObject<int>(snap1.GetRawJsonValue());
+                Debug.LogWarning("The value openMenuState is null. This is invalid state.");
+                return;
             }
 
-
-            highScoreTextObject.text = String.Format(formatText, team0Highscore, team1Highscore, playerHighscore);
-
-            return playerHighscore;
-        }
-
-        public static async Task UploadHighscoreAtHackpoint(int previousHighscore, int highscore, string hackpointID)
-        {
-            if (highscore > previousHighscore)
+            if (highscore > openMenuState.playerHighscore)
             {
-                var reference = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointPlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
+                openMenuState.playerHighscore = highscore;
+                var reference = hackpointReference.Child(openMenuState.currentHackpointID).Child(FirebaseRefs.HackpointPlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
                 await reference.SetValueAsync(highscore);
             }
         }
@@ -177,11 +188,34 @@ namespace Assets.Scripts.Firebase
             int value = 0;
             var reference = hackpointReference.Child(hackpointID).Child(FirebaseRefs.HackpointPlayerHighscoresRef).Child(AuthManager.Instance.CurrentUserID);
             var snapshot = await reference.GetValueAsync();
+            
             if (snapshot.Value != null)
             {
                 value = JsonConvert.DeserializeObject<int>(snapshot.GetRawJsonValue());
             }
             return value;
+        }
+
+        private void HandleHighscoreChanged(object sender, ValueChangedEventArgs args) {
+            if (args.DatabaseError != null) {
+                Debug.LogError(args.DatabaseError.Message);
+                return;
+            }
+            if (openMenuState == null)
+            {
+                Debug.LogWarning("The value openMenuState is null. This is invalid state for this callback HandleHighscoreChanged.");
+                return;
+            }
+            var snapshot = args.Snapshot;
+            int[] teamHighscores = new int[]{0,0};
+
+            if (snapshot.Value != null)
+            {
+                teamHighscores = JsonConvert.DeserializeObject<int[]>(snapshot.GetRawJsonValue());
+            }
+
+            highScoreTextObject.text = String.Format(formatText, teamHighscores[0], teamHighscores[1], openMenuState.playerHighscore);
+            return;
         }
     }
 }
