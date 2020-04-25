@@ -95,7 +95,7 @@ namespace Assets.Scripts.Firebase
                     openMenuState.TeamHighscoresRef.ValueChanged -= HandleHighscoreChanged;
                     openMenuState = null;
                 }
-                else
+                else if (openMenuState == null)
                 {
                     if (MinigameSceneNames.Length == 0)
                     {
