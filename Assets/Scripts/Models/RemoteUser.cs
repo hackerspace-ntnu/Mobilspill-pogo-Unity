@@ -10,10 +10,19 @@ namespace Assets.Scripts.Models {
         private string text;
         private bool changed = false; 
 
+        public Animator animator;
+
+        void Start ()
+        {
+            animator = GetComponentInChildren<Animator>();
+        }
+
         private IEnumerator LerpToPosition(Vector3 position, float time)
         {
             float elapsedTime = 0;
             Vector3 previousPosition = transform.localPosition;
+
+            animator.SetBool("Running", true);
 
             while (elapsedTime < time)
             {
@@ -21,6 +30,7 @@ namespace Assets.Scripts.Models {
                 elapsedTime += Time.deltaTime;
                 yield return new WaitForEndOfFrame();
             }
+            animator.SetBool("Running", false);
         }
 
         void Update()
