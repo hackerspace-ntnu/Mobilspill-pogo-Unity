@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.IO;
+using System;
 
 
 //Til neste gang: Sett en restriction på antall piler, så man ikke får uendelig score (gjort)
@@ -21,6 +23,7 @@ using TMPro;
 //Kankje balansere scorene litt bedre
 //Skaff musikk
 //Animer tomat
+//Synk opp bedre med musikken
 
 public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjøre Unity-greier med klassen, som f.eks. Deltatime
 {
@@ -44,19 +47,37 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
     private int combo;
     private float baseBeat; //Standard beat som hastighet går ut fra
     //private SwipeDirCheck swipeDirCheck = new SwipeDirCheck();
+    private string[] rythm;
+    private int beatTracker; //Holder styr på hvor mange beats det har gått
+    private int rythmIndex; //Index til det gjeldende elemnetet i rythm
+    private List<float> beatMoments; //Tidspunkt det skal skje beats
+
 
     // Start is called before the first frame update
     void Start()
     {
-        baseBeat = 1f;
+        //baseBeat = 1f;
         //SetBeat(baseBeat); // Setter beatPerSecond
-        SetBeat(baseBeat*9f); // Test
-        pointMultiplier = 100f/695f;
-        numSpawnedArrows = 100;
+        //SetBeat(baseBeat*2f); // Test
+        pointMultiplier = 1;//100f/695f;
+        numSpawnedArrows = 0;
         comboMultiplier = 1;
         combo = 0;
+        rythmIndex = 0;
         newSwipe = true;
+        beatMoments = new List<float>();
         GameObject.Find("EndScreen").GetComponent<Canvas>().enabled = false;
+        rythm = System.IO.File.ReadAllLines(Path.GetFullPath(Environment.CurrentDirectory+ "/Assets/Minigames/Rythmic_fisk/beatsouls_melody.txt"));
+        foreach (string line in rythm)
+        {
+            if (line.Contains(","))
+            {
+                numSpawnedArrows++;
+            }
+        }
+        SetBeat(float.Parse(rythm[rythmIndex])/ /*60f*/(float)7.5);
+        BeatMomentsSetup();
+
     }
 
     void SetBeat(float beat)
@@ -77,7 +98,8 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
         randomness = score / 100f;
 
         BeatCountdown();
-        ArrowCountDown(); 
+        ArrowCountDown();
+
         
        /* else
         {
@@ -117,16 +139,31 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
         else if (beatTimer <= 0 && numSpawnedArrows != 0)
         {
             beatTimer = 1f / beatPerSecond;
-            if(Random.Range(0f,1.5f) >= randomness) //0 til 1,99999(osv.) siden det er float
+            // if(UnityEngine.Random.Range(0f,1.5f) >= randomness) //0 til 1,99999(osv.) siden det er float
+            // {
+            // SetBeat(baseBeat);
+            if (beatTracker < 31)
             {
-                SetBeat(baseBeat);
-                MakeArrow();
-                numSpawnedArrows--;
-                print("SpawnedArrows: "+numSpawnedArrows);
+                beatTracker++;
             }
             else
             {
-                if(Random.Range(0,2) == 0)
+                BeatMomentsSetup();
+                beatTracker = 0;
+            }
+            if (beatMoments.Contains(beatTracker))
+            {
+                MakeArrow();
+                numSpawnedArrows--;
+                print("SpawnedArrows: " + numSpawnedArrows);
+            }
+               
+
+
+            //}
+           /* else
+            {
+                if(UnityEngine.Random.Range(0,2) == 0)
                 {
                     SetBeat(baseBeat*2f);
                     //beatTimer = (1f / beatPerSecond) / 2f;
@@ -138,9 +175,37 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
                 {
                     SetBeat(baseBeat);
                 }
-            } 
+            }*/ 
         }
     }
+
+    void BeatMomentsSetup()
+    {
+        beatMoments.Clear();
+        if (rythmIndex < rythm.Length-1)
+        {
+            rythmIndex++;
+            if (rythm[rythmIndex] == "{")
+            {
+                rythmIndex++;
+                while (rythm[rythmIndex] != "}")
+                {
+                    beatMoments.Add(float.Parse(rythm[rythmIndex].Substring(0, rythm[rythmIndex].IndexOf(",")))*2);
+                    rythmIndex++;
+                }
+                print(beatMoments);
+            }
+            else
+            {
+                beatMoments.Clear();
+            }
+        }
+    }
+
+    /*void SetRythm(string filename)
+    {
+        rythm = System.IO.File.ReadAllLines(Path.GetFullPath(filename));
+    }*/
 
     void combosetter()
     {
@@ -264,7 +329,7 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
     void MakeArrow() //Lager piler
     {
         GameObject newarrowPref = Instantiate(arrowPref); // Lager selve klonepilene
-        Arrow newArrow = new Arrow(Random.Range(0, 4), newarrowPref, (1/beatPerSecond) * 4)/*Sekunder du har på deg til å utføre action*/; //Setter opp parametere for piler
+        Arrow newArrow = new Arrow(UnityEngine.Random.Range(0, 4), newarrowPref, (1/beatPerSecond) * 4)/*Sekunder du har på deg til å utføre action*/; //Setter opp parametere for piler
         newArrow.getArrowObject().GetComponent<SpriteRenderer>().sortingOrder = numSpawnedArrows;
         arrowList.Add(newArrow);
 
