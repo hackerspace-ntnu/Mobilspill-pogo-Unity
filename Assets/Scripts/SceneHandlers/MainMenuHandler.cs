@@ -12,6 +12,8 @@ public class MainMenuHandler : MonoBehaviour {
     private GameObject _logOutButton;
     private GameObject _loadingBar;
 
+    // private DataSnapshot selectedTeamSnapshot;
+
     //properly logged in means we have both the db user values and the auth
     private bool _properlyLoggedIn = false;
     // Start is called before the first frame update.
@@ -76,13 +78,29 @@ public class MainMenuHandler : MonoBehaviour {
         // Setting up button listeners.
         _startButton.GetComponent<Button>().onClick.AddListener(StartGame);
         _logOutButton.GetComponent<Button>().onClick.AddListener(() => { AuthManager.Instance.LogOut(); });
+        
+        // selectedTeamSnapshot = await UserDatabase.RetrievePropertyData(UserDatabase.TeamIndex, AuthManager.Instance.CurrentUserID);
+        
     }
 
-    public void StartGame() {
+    public async void StartGame() {
         // If Firebase is active and user exists.
         if (AuthManager.Instance.FirebaseActive
-            && AuthManager.Instance.Auth != null) {
-            SceneManager.LoadScene("Assets/Scenes/PoGo.unity");
+            && AuthManager.Instance.Auth != null ) {
+            
+            var selectedTeamSnapshot = await UserDatabase.RetrievePropertyData(UserDatabase.TeamIndex, AuthManager.Instance.CurrentUserID);
+            
+            if (selectedTeamSnapshot.Value != null)
+            {
+                SceneManager.LoadScene("Assets/Scenes/PoGo.unity");
+            }
+
+            else
+            {
+                SceneManager.LoadScene("Assets/Scenes/TeamSelect.unity");
+            }
+
+
         } else {
             UnityEngine.Debug.LogError("ERROR -- Should not have start game option when not logged in.");
             

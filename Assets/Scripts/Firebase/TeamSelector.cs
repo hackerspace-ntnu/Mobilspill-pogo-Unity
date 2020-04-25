@@ -11,47 +11,50 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-
 namespace Assets.Scripts.Firebase
 {
     public class TeamSelector : MonoBehaviour
     {
+        public Text teamLabel;
+
         private static DatabaseReference database;
         private static DatabaseReference teamReference;
+
+        private static DatabaseReference teamIndex;
 
         private static string currentIndex;
 
         private static string currentTeamsString;
 
-        // public GameObject teamS elector = GameObject.Find("TeamSelectionTempMenu");
-
-
-        private static async Task<Dictionary<string, string>> RetrieveTeams()
+        private static async Task<Dictionary<string, string>> RetrieveTeam()
         {
-            var t = await teamReference.GetValueAsync();
+            var t = await teamIndex.GetValueAsync();
             string json = t.GetRawJsonValue();
             return JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
         }
 
         async void Start()
         {
+            Debug.Log(AuthManager.Instance.CurrentUserID);
+            Debug.Log("Initialising database");
             database           = RealtimeDatabaseManager.Instance.DBReference;
-            teamReference      = database.Child("team_comps");
-            var teamData       = await RetrieveTeams();
-            currentIndex       = teamData["current_index"];
-            currentTeamsString = teamData[currentIndex];
-            var currentTeams   = currentTeamsString.Split(',');
-            Debug.Log("Current index " +  currentIndex);
-            Debug.Log("Current team string " + currentTeamsString);
+            Debug.Log("Getting reference to team index");
+            teamIndex          = database.Child("team_index");
+            Debug.Log("Fetching team data");
+            var indexData      = await RetrieveTeam();
 
-            Dropdown selector = GameObject.Find("TeamSelectionTempMenu").GetComponent<Dropdown>();
 
-            List<string> selectorOptions = selector.options;
+            var teamComps = database.Child("team_comps");
 
-            selectorOptions[0] = currentTeams[0];
-            selectorOptions[1] = currentTeams[1];
-            selector.options = selectorOptions as Dropdown.OptionData;
-            // Debug.Log(selector.options.ToString());
+            var t = await teamComps.GetValueAsync(); 
+            string json = t.GetRawJsonValue();
+            var snapshot = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            var currentIndex = snapshot["current_index"] as string;
+            var teams = snapshot[currentIndex].Split(',');
+            int myIndex = Int32.Parse(indexData[AuthManager.Instance.CurrentUserID]);
+            string myTeam = teams[myIndex];
+
+            teamLabel.text = ("Team " + myTeam).ToUpper();
         }
 
         void Update()

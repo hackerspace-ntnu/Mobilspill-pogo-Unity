@@ -21,7 +21,8 @@ namespace Assets.Scripts.Firebase
         public static DatabaseReference Modified = database.Child("/modified/");
         public static DatabaseReference Positions = database.Child("/positions/");
         public static DatabaseReference LoggedIn = database.Child("/logged_in/");
-        public static DatabaseReference Teams = database.Child("/teams/");
+        public static DatabaseReference Teams = database.Child("/team_comps/");
+        public static DatabaseReference TeamIndex = database.Child("/team_index/");
         public static async Task<DataSnapshot> RetrievePropertyData(DatabaseReference databaseReference, string userId)
         {
             return await databaseReference.Child(userId).GetValueAsync();
