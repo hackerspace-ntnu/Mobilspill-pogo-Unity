@@ -24,6 +24,7 @@ using System;
 //Skaff musikk
 //Animer tomat
 //Synk opp bedre med musikken
+//Fiks slik at 16 beats = 1 sekund
 
 public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjøre Unity-greier med klassen, som f.eks. Deltatime
 {
@@ -67,8 +68,8 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
         newSwipe = true;
         beatMoments = new List<float>();
         GameObject.Find("EndScreen").GetComponent<Canvas>().enabled = false;
-        rythm = System.IO.File.ReadAllLines(Path.GetFullPath(Environment.CurrentDirectory+ "/Assets/Minigames/Rythmic_fisk/beatsouls_melody.txt"));
-        foreach (string line in rythm)
+        rythm = System.IO.File.ReadAllLines(Path.GetFullPath(Environment.CurrentDirectory+ "/Assets/Minigames/Rythmic_fisk/beatsouls_melody.txt"));//Setter opp path så vi får tak i rytmefilen
+        foreach (string line in rythm)//Setter opp spawned arrows
         {
             if (line.Contains(","))
             {
@@ -95,7 +96,7 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
         {
             newSwipe = true;
         }
-        randomness = score / 100f;
+        //randomness = score / 100f;
 
         BeatCountdown();
         ArrowCountDown();
@@ -142,7 +143,7 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
             // if(UnityEngine.Random.Range(0f,1.5f) >= randomness) //0 til 1,99999(osv.) siden det er float
             // {
             // SetBeat(baseBeat);
-            if (beatTracker < 31)
+            if (beatTracker < 31)//Resetter seg når det har gått 2 sekunder
             {
                 beatTracker++;
             }
@@ -179,6 +180,7 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
         }
     }
 
+    //Bruker textfil for å sette opp rytmen
     void BeatMomentsSetup()
     {
         beatMoments.Clear();
